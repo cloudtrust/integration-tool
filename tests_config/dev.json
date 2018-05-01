@@ -1,0 +1,21 @@
+{
+  "service_provider": {
+    "ip": "127.0.0.1",
+    "port": "7000",
+    "http_scheme": "http",
+    "path": "tokenInformation",
+    "logout_path": "singleLogout",
+    "logged_in_message": "Login successful, welcome",
+    "logged_out_message": "You have logged out"
+  },
+  "identity_provider": {
+    "ip" : "127.0.0.1",
+    "port" : "8080",
+    "path": "auth/realms/keycloak_testing/account",
+    "http_scheme" : "http",
+    "username" : "sonia",
+    "password" : "Passthis12*",
+    "login_form_id": "kc-form-login",
+    "logged_in_message": "Keycloak Account Management"
+  }
+}
