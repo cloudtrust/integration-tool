@@ -1,1 +1,1 @@
-# integration-tool
+# acceptance-tool
