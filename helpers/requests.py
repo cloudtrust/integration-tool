@@ -14,7 +14,44 @@ logger = logging.getLogger('requests')
 logger.setLevel(logging.DEBUG)
 
 
-def access_sp(s, header, sp_ip, sp_port, sp_scheme, sp_path, idp_ip, idp_port):
+def access_sp_ws_fed(s, header, sp_ip, sp_port, sp_scheme, sp_path):
+    # Access to the SP
+    header_sp_page = {
+        **header,
+        'Host': "{ip}:{port}".format(ip=sp_ip, port=sp_port),
+        'Referer': "{ip}:{port}".format(ip=sp_ip, port=sp_port)
+    }
+
+    req_get_sp_page = Request(
+        method='GET',
+        url="{scheme}://{ip}:{port}/{path}".format(
+            scheme=sp_scheme,
+            port=sp_port,
+            ip=sp_ip,
+            path=sp_path
+        ),
+        headers=header_sp_page,
+    )
+
+    prepared_request = req_get_sp_page.prepare()
+
+    logger.debug(
+        json.dumps(
+            prepared_request_to_json(req_get_sp_page),
+            sort_keys=True,
+            indent=4,
+            separators=(',', ': ')
+        )
+    )
+
+    response = s.send(prepared_request, verify=False, allow_redirects=False)
+
+    logger.debug(response.status_code)
+
+    return response
+
+
+def access_sp_saml(s, header, sp_ip, sp_port, sp_scheme, sp_path, idp_ip, idp_port):
 
     # Access to the SP
     header_sp_page = {
@@ -65,17 +102,17 @@ def access_sp(s, header, sp_ip, sp_port, sp_scheme, sp_path, idp_ip, idp_port):
     for input in inputs:
         saml_request[input.get('name')] = input.get('value')
 
-    header_idp_saml_request = {
+    header_redirect_idp = {
         **header,
         'Host': "{ip}:{port}".format(ip=idp_ip, port=idp_port),
-        'Referer': "{scheme}://{ip}:{port}/{path}".format(scheme=sp_scheme, ip=sp_ip, port=sp_port, path=sp_path),
+        'Referer': "{ip}:{port}".format(ip=sp_ip, port=sp_port)
     }
 
     req_idp_saml_request = Request(
         method=method_form,
         url="{url}".format(url=url_form),
         data=saml_request,
-        headers=header_idp_saml_request
+        headers=header_redirect_idp
     )
 
     prepared_request = req_idp_saml_request.prepare()
@@ -93,10 +130,10 @@ def access_sp(s, header, sp_ip, sp_port, sp_scheme, sp_path, idp_ip, idp_port):
 
     logger.debug(response.status_code)
 
-    return session_cookie, header_idp_saml_request, response
+    return session_cookie, response
 
 
-def access_sp_with_saml_token(s, header, sp_ip, sp_port, idp_scheme, idp_ip, idp_port, method, url, saml, session_cookie, keycloak_cookie):
+def access_sp_with_token(s, header, sp_ip, sp_port, idp_scheme, idp_ip, idp_port, method, url, token, session_cookie, keycloak_cookie):
     # Perform a callback
     header_callback = {
         **header,
@@ -104,19 +141,19 @@ def access_sp_with_saml_token(s, header, sp_ip, sp_port, idp_scheme, idp_ip, idp
         'Referer': "{scheme}://{ip}:{port}".format(scheme=idp_scheme, ip=idp_ip, port=idp_port),
     }
 
-    req_sp_saml_response = Request(
+    req_sp_with_response = Request(
         method=method,
         url="{url}".format(url=url),
-        data=saml,
+        data=token,
         cookies=session_cookie,
         headers=header_callback
     )
 
-    prepared_request = req_sp_saml_response.prepare()
+    prepared_request = req_sp_with_response.prepare()
 
     logger.debug(
         json.dumps(
-            prepared_request_to_json(req_sp_saml_response),
+            prepared_request_to_json(req_sp_with_response),
             sort_keys=True,
             indent=4,
             separators=(',', ': ')
@@ -160,7 +197,7 @@ def access_sp_with_saml_token(s, header, sp_ip, sp_port, idp_scheme, idp_ip, idp
 
     logger.debug(response.status_code)
 
-    return response,sp_cookie
+    return response, sp_cookie
 
 
 def redirect_to_idp(s, redirect_url, header, cookie):
@@ -321,6 +358,11 @@ def login_idp(s, header, idp_ip, idp_port, idp_scheme, idp_path, idp_username, i
     logger.debug(response.status_code)
 
     keycloak_cookie2 = response.cookies
+
+    print("the place where it stopped working")
+    print(response.headers)
+    print(response.text)
+    print(response.status_code)
 
     url_redirect = response.headers['Location']
 

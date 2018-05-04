@@ -14,6 +14,7 @@ from requests import Request, Session
 
 def pytest_addoption(parser):
     parser.addoption("--config-file", action="store", help="Json configuration file ", dest="config_file")
+    parser.addoption("--standard", action="store", help="Oasis standard ", dest="standard")
 
 
 @pytest.fixture()
@@ -29,7 +30,9 @@ def settings(pytestconfig):
 
 
 @pytest.fixture()
-def login_sso_form(settings):
+def login_sso_form(settings, pytestconfig):
+
+    standard = pytestconfig.getoption('standard')
 
     s = Session()
 
@@ -60,16 +63,25 @@ def login_sso_form(settings):
     }
 
     # Perform login
-
-    (session_cookie, header_idp_saml_request, response) = req.access_sp(s, header, sp_ip, sp_port, sp_scheme, sp_path,
+    if standard == "WSFED":
+        response = req.access_sp_ws_fed(s, header, sp_ip, sp_port, sp_scheme, sp_path)
+    elif standard == "SAML":
+        (cookie1, response) = req.access_sp_saml(s, header, sp_ip, sp_port, sp_scheme, sp_path,
                                                                         idp_ip, idp_port)
 
-    # store the cookie received from keycloak
-    keycloak_cookie = response.cookies
+    session_cookie = response.cookies
 
     redirect_url = response.headers['Location']
 
-    response = req.redirect_to_idp(s, redirect_url, header_idp_saml_request, keycloak_cookie)
+    header_redirect_idp = {
+        **header,
+        'Host': "{ip}:{port}".format(ip=idp_ip, port=idp_port),
+        'Referer': "{ip}:{port}".format(ip=sp_ip, port=sp_port)
+    }
+
+    response = req.redirect_to_idp(s, redirect_url, header_redirect_idp, session_cookie)
+
+    keycloak_cookie = response.cookies
 
     soup = BeautifulSoup(response.content, 'html.parser')
 
@@ -89,8 +101,12 @@ def login_sso_form(settings):
     credentials_data["username"] = idp_username
     credentials_data["password"] = idp_password
 
-    response = req.send_credentials_to_idp(s, header, idp_ip, idp_port, redirect_url, url_form, credentials_data,
-                                           keycloak_cookie, method_form)
+    if standard == "WSFED":
+        response = req.send_credentials_to_idp(s, header, idp_ip, idp_port, redirect_url, url_form, credentials_data,
+                                               keycloak_cookie, method_form)
+    elif standard == "SAML":
+        response = req.send_credentials_to_idp(s, header, idp_ip, idp_port, redirect_url, url_form, credentials_data,
+                                               session_cookie, method_form)
 
     keycloak_cookie_2 = response.cookies
 
@@ -101,13 +117,16 @@ def login_sso_form(settings):
     inputs = form.find_all('input')
     method_form = form.get('method')
 
-    # Get the saml response from the identity provider
-    saml_response = {}
+    # Get the token from the IDP
+    token = {}
     for input in inputs:
-        saml_response[input.get('name')] = input.get('value')
+        token[input.get('name')] = input.get('value')
 
-    (response, sp_cookie) = req.access_sp_with_saml_token(s, header, sp_ip, sp_port, idp_scheme, idp_ip, idp_port,
-                                                          method_form, url_form, saml_response, session_cookie,
-                                                          keycloak_cookie_2)
+    if standard == "WSFED":
+        (response, sp_cookie) = req.access_sp_with_token(s, header, sp_ip, sp_port, idp_scheme, idp_ip, idp_port,
+                                                         method_form, url_form, token, session_cookie, keycloak_cookie_2)
+    elif standard == "SAML":
+        (response, sp_cookie) = req.access_sp_with_token(s, header, sp_ip, sp_port, idp_scheme, idp_ip, idp_port,
+                                                         method_form, url_form, token, cookie1, keycloak_cookie_2)
 
     return sp_cookie

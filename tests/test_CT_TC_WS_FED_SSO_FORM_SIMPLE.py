@@ -7,8 +7,10 @@
 import pytest
 import logging
 import re
+import json
 
 import helpers.requests as req
+from helpers.logging import prepared_request_to_json
 
 from bs4 import BeautifulSoup
 from requests import Request, Session
@@ -30,14 +32,14 @@ logger.setLevel(logging.DEBUG)
 
 
 @pytest.mark.usefixtures('settings', scope='class')
-class Test_CT_TC_SAML_SSO_FORM_SIMPLE():
+class Test_CT_TC_WS_FED_SSO_FORM_SIMPLE():
     """
-    Class to test the CT_TC_SAML_SSO_FORM_SIMPLE use case:
+    Class to test the CT_TC_WS_FED_SSO_FORM_SIMPLE use case:
     As a user I can access an application from any device with the SAML token delivered by the KEYCLOAK IDP after a
     successful form authentication.
     """
 
-    def test_CT_TC_SAML_SSO_FORM_SIMPLE_SP_initiated(self, settings):
+    def test_CT_TC_WS_FED_SSO_FORM_SIMPLE_SP_initiated(self, settings):
         """
         Test the CT_TC_SAML_SSO_FORM_SIMPLE use case with the SP-initiated flow, i.e. the user accesses the application
         , which is a service provider (SP), that redirects him to the keycloak, the identity provider (IDP).
@@ -76,13 +78,9 @@ class Test_CT_TC_SAML_SSO_FORM_SIMPLE():
             'Upgrade-Insecure-Requests': "1",
         }
 
-        (session_cookie, response) = req.access_sp_saml(s, header, sp_ip, sp_port, sp_scheme, sp_path,
-                                                                        idp_ip, idp_port)
+        response = req.access_sp_ws_fed(s, header, sp_ip, sp_port, sp_scheme, sp_path)
 
-        assert response.status_code == 302
-
-        # store the cookie received from keycloak
-        keycloak_cookie = response.cookies
+        session_cookie = response.cookies
 
         redirect_url = response.headers['Location']
 
@@ -92,11 +90,13 @@ class Test_CT_TC_SAML_SSO_FORM_SIMPLE():
             'Referer': "{ip}:{port}".format(ip=sp_ip, port=sp_port)
         }
 
-        response = req.redirect_to_idp(s, redirect_url, header_redirect_idp, keycloak_cookie)
+        response = req.redirect_to_idp(s, redirect_url, header_redirect_idp, session_cookie)
+
+        keycloak_cookie = response.cookies
 
         soup = BeautifulSoup(response.content, 'html.parser')
 
-        form = soup.find("form",{"id": keycloak_login_form_id})
+        form = soup.find("form", {"id": keycloak_login_form_id})
 
         assert form is not None
 
@@ -107,7 +107,7 @@ class Test_CT_TC_SAML_SSO_FORM_SIMPLE():
 
         input_name = []
         for input in inputs:
-                input_name.append(input.get('name'))
+            input_name.append(input.get('name'))
 
         assert "username" in input_name
         assert "password" in input_name
@@ -117,9 +117,10 @@ class Test_CT_TC_SAML_SSO_FORM_SIMPLE():
         credentials_data["username"] = idp_username
         credentials_data["password"] = idp_password
 
-        response = req.send_credentials_to_idp(s, header, idp_ip, idp_port, redirect_url, url_form, credentials_data, keycloak_cookie, method_form)
+        response = req.send_credentials_to_idp(s, header, idp_ip, idp_port, redirect_url, url_form, credentials_data,
+                                               keycloak_cookie, method_form)
 
-        #print(response.text)
+        # print(response.text)
 
         assert response.status_code == 200 or response.status_code == 302 or response.status_code == 303 or response.status_code == 307
 
@@ -133,13 +134,13 @@ class Test_CT_TC_SAML_SSO_FORM_SIMPLE():
         method_form = form.get('method')
 
         # Get the SAML response from the identity provider
-        saml_response = {}
+        ws_fed_response = {}
         for input in inputs:
-            saml_response[input.get('name')] = input.get('value')
+            ws_fed_response[input.get('name')] = input.get('value')
 
         (response, sp_cookie) = req.access_sp_with_token(s, header, sp_ip, sp_port, idp_scheme, idp_ip, idp_port,
-                                                          method_form, url_form, saml_response, session_cookie,
-                                                          keycloak_cookie_2)
+                                                              method_form, url_form, ws_fed_response, session_cookie,
+                                                              keycloak_cookie_2)
 
         assert response.status_code == 200
 
@@ -147,8 +148,7 @@ class Test_CT_TC_SAML_SSO_FORM_SIMPLE():
         assert re.search(sp_message, response.text) is not None
 
 
-
-    def test_CT_TC_SAML_SSO_FORM_SIMPLE_IDP_initiated(self, settings):
+    def test_CT_TC_WS_FED_SSO_FORM_SIMPLE_IDP_initiated(self, settings):
         """
         Test the CT_TC_SAML_SSO_FORM_SIMPLE use case with the IDP-initiated flow, i.e. the user logs in keycloak,
         the identity provider (IDP), and then accesses the application, which is a service provider (SP).
@@ -176,8 +176,6 @@ class Test_CT_TC_SAML_SSO_FORM_SIMPLE():
         idp_username = settings["identity_provider"]["username"]
         idp_password = settings["identity_provider"]["password"]
 
-        keycloak_login_form_id = settings["identity_provider"]["login_form_id"]
-
         # Common header for all the requests
         header = {
             'Accept': "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
@@ -188,18 +186,19 @@ class Test_CT_TC_SAML_SSO_FORM_SIMPLE():
             'Upgrade-Insecure-Requests': "1",
         }
 
-        (oath_cookie, keycloak_cookie, keycloak_cookie2, response) = req.login_idp(s, header, idp_ip, idp_port, idp_scheme,
-                                                                                idp_path, idp_username, idp_password)
+        (oath_cookie, keycloak_cookie, keycloak_cookie2, response) = req.login_idp(s, header, idp_ip, idp_port,
+                                                                                   idp_scheme, idp_path, idp_username,
+                                                                                   idp_password)
 
         assert response.status_code == 200
 
         # Assert we are logged in
         assert re.search(idp_message, response.text) is not None
 
-        (session_cookie, response) = req.access_sp_saml(s, header, sp_ip, sp_port, sp_scheme, sp_path, idp_ip, idp_port)
+        response = req.access_sp_ws_fed(s, header, sp_ip, sp_port, sp_scheme, sp_path)
 
         # store the cookie received from keycloak
-        keycloak_cookie3 = response.cookies
+        session_cookie = response.cookies
 
         assert response.status_code == 302
 
@@ -211,7 +210,7 @@ class Test_CT_TC_SAML_SSO_FORM_SIMPLE():
             'Referer': "{ip}:{port}".format(ip=sp_ip, port=sp_port)
         }
 
-        response = req.redirect_to_idp(s, redirect_url, header_redirect_idp, {**keycloak_cookie3, **keycloak_cookie2})
+        response = req.redirect_to_idp(s, redirect_url, header_redirect_idp, {**keycloak_cookie2})
 
         assert response.status_code == 200
 
@@ -223,15 +222,16 @@ class Test_CT_TC_SAML_SSO_FORM_SIMPLE():
         method_form = form.get('method')
 
         # Get the saml response from the identity provider
-        saml_response = {}
+        ws_fed_response = {}
         for input in inputs:
-            saml_response[input.get('name')] = input.get('value')
+            ws_fed_response[input.get('name')] = input.get('value')
 
         (response, sp_cookie) = req.access_sp_with_token(s, header, sp_ip, sp_port, idp_scheme, idp_ip, idp_port,
-                                                          method_form, url_form, saml_response, session_cookie,
-                                                          keycloak_cookie2)
+                                                              method_form, url_form, ws_fed_response, session_cookie,
+                                                              keycloak_cookie2)
 
         assert response.status_code == 200
 
         assert re.search(sp_message, response.text) is not None
+
 

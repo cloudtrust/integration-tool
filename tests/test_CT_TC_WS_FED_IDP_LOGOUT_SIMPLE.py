@@ -9,6 +9,7 @@ import logging
 import re
 import json
 
+import helpers.requests as req
 from helpers.logging import prepared_request_to_json
 
 from bs4 import BeautifulSoup
@@ -31,16 +32,16 @@ logger.setLevel(logging.DEBUG)
 
 
 @pytest.mark.usefixtures('settings', 'login_sso_form', scope='class')
-class Test_test_CT_TC_SAML_IDP_LOGOUT_SIMPLE():
+class Test_test_CT_TC_WS_FED_IDP_LOGOUT_SIMPLE():
     """
-    Class to test the CT_TC_SAML_IDP_LOGOUT_SIMPLE use case:
+    Class to test the CT_TC_WS_FED_IDP_LOGOUT_SIMPLE use case:
     As a resource owner I need the solution to ensure that all access tokens/sessions are invalidated and not usable
     anymore after the user has proceeded to a logout on the target application.
     """
 
-    def test_CT_TC_SAML_IDP_LOGOUT_SIMPLE(self, settings, login_sso_form):
+    def test_CT_TC_WS_FED_IDP_LOGOUT_SIMPLE(self, settings, login_sso_form):
         """
-        Test the CT_TC_SAML_IDP_LOGOUT_SIMPLE use case with the SP-initiated flow, i.e. the user that accessed the SP
+        Test the CT_TC_WS_FED_IDP_LOGOUT_SIMPLE use case with the SP-initiated flow, i.e. the user that accessed the SP
         asks to be logged out. This will trigger the logout to be performed on the IDP side and the user will
         be able to see the "You're logged out" page.
         :param settings:
@@ -110,116 +111,57 @@ class Test_test_CT_TC_SAML_IDP_LOGOUT_SIMPLE():
 
         logger.debug(response.status_code)
 
-        assert response.status_code == 200
+        redirect_url = response.headers['Location']
 
-        # SP redirects me to IDP with a SAML request
-        soup = BeautifulSoup(response.content, 'html.parser')
+        req_sp_logout_redirect = Request(
+            method='GET',
+            url= redirect_url,
+            headers=header_sp_logout_page,
+            cookies={**sp_cookie}
+        )
 
-        form = soup.body.form
-        url_form = form.get('action')
-        method_form = form.get('method')
-        inputs = form.find_all('input')
+        prepared_request = req_sp_logout_redirect.prepare()
 
-        # Do a SAML request to the identity provider
-        saml_request = {}
-        for input in inputs:
-            saml_request[input.get('name')] = input.get('value')
+        logger.debug(
+            json.dumps(
+                prepared_request_to_json(req_sp_logout_redirect),
+                sort_keys=True,
+                indent=4,
+                separators=(',', ': ')
+            )
+        )
+
+        response = s.send(prepared_request, verify=False, allow_redirects=False)
+
+        logger.debug(response.status_code)
+
+        redirect_url = response.headers['Location']
 
         header_redirect_idp = {
             **header,
             'Host': "{ip}:{port}".format(ip=idp_ip, port=idp_port),
-            'Referer': "{scheme}://{ip}:{port}/{path}".format(scheme=sp_scheme, ip=sp_ip, port=sp_port, path=sp_logout_path),
+            'Referer': "{ip}:{port}".format(ip=sp_ip, port=sp_port)
         }
 
-        req_idp_saml_request = Request(
-            method=method_form,
-            url="{url}".format(url=url_form),
-            data=saml_request,
-            headers=header_redirect_idp
-        )
-
-        prepared_request = req_idp_saml_request.prepare()
-
-        logger.debug(
-            json.dumps(
-                prepared_request_to_json(req_idp_saml_request),
-                sort_keys=True,
-                indent=4,
-                separators=(',', ': ')
-            )
-        )
-
-        response = s.send(prepared_request, verify=False, allow_redirects=False)
-
-        logger.debug(response.status_code)
-
-        assert  response.status_code == 200
-
-        soup = BeautifulSoup(response.content, 'html.parser')
-        form = soup.body.form
-
-        url_form = form.get('action')
-        inputs = form.find_all('input')
-        method_form = form.get('method')
-
-        # Get the saml response from the identity provider
-        saml_response = {}
-        for input in inputs:
-            saml_response[input.get('name')] = input.get('value')
-
-        header_idp_saml_response= {
-            **header,
-            'Host': "{ip}:{port}".format(ip=sp_ip, port=sp_port),
-            'Referer': "{scheme}://{ip}:{port}".format(scheme=idp_scheme, ip=idp_ip, port=idp_port),
-        }
-
-        # Provide to the SP the SAML response
-        req_sp_saml_response = Request(
-            method=method_form,
-            url="{url}".format(url=url_form),
-            data=saml_request,
-            headers=header_idp_saml_response
-        )
-
-        prepared_request = req_sp_saml_response.prepare()
-
-        logger.debug(
-            json.dumps(
-                prepared_request_to_json(req_sp_saml_response),
-                sort_keys=True,
-                indent=4,
-                separators=(',', ': ')
-            )
-        )
-
-        response = s.send(prepared_request, verify=False, allow_redirects=False)
-
-        logger.debug(response.status_code)
-
-        url_sp = response.headers['Location']
-
-        req_logout = Request(
-            method='GET',
-            url="{url}".format(url=url_sp),
-            headers=header_idp_saml_response
-        )
-
-        prepared_request = req_logout.prepare()
-
-        logger.debug(
-            json.dumps(
-                prepared_request_to_json(req_logout),
-                sort_keys=True,
-                indent=4,
-                separators=(',', ': ')
-            )
-        )
-
-        response = s.send(prepared_request, verify=False)
-
-        logger.debug(response.status_code)
+        response = req.redirect_to_idp(s, redirect_url, header, sp_cookie)
 
         assert response.status_code == 200
 
-        # Assert the logout page is displayed
+        soup = BeautifulSoup(response.content, 'html.parser')
+
+        form = soup.body.form
+        url_form = form.get('action')
+        method_form = form.get('method')
+        inputs = form.find_all('input')
+
+        # Send ws fed response
+        token = {}
+        for input in inputs:
+            token[input.get('name')] = input.get('value')
+
+        (response, cookie) = req.access_sp_with_token(s, header, sp_ip, sp_port, idp_scheme, idp_ip, idp_port,
+                                                      method_form, url_form, token, sp_cookie, sp_cookie)
+
+        assert response.status_code == 200
+
         assert re.search(sp_message, response.text) is not None
