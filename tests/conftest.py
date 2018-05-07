@@ -129,4 +129,4 @@ def login_sso_form(settings, pytestconfig):
         (response, sp_cookie) = req.access_sp_with_token(s, header, sp_ip, sp_port, idp_scheme, idp_ip, idp_port,
                                                          method_form, url_form, token, cookie1, keycloak_cookie_2)
 
-    return sp_cookie
+    return sp_cookie, keycloak_cookie_2

@@ -8,6 +8,15 @@
     "logged_in_message": "Login successful, welcome",
     "logged_out_message": "You have logged out"
   },
+  "service_provider2": {
+    "ip": "127.0.0.1",
+    "port": "9001",
+    "http_scheme": "http",
+    "path": "tokenInformation",
+    "logout_path": "singleLogout",
+    "logged_in_message": "Login successful, welcome",
+    "logged_out_message": "You have logged out"
+  },
   "identity_provider": {
     "ip" : "127.0.0.1",
     "port" : "8080",
@@ -15,7 +24,7 @@
     "http_scheme" : "http",
     "login_form_id": "kc-form-login",
     "logged_in_message": "Keycloak Account Management",
-    "username" : "sonia",
-    "password" : "password"
+    "username" : "test1",
+    "password" : "admin"
   }
 }

@@ -41,6 +41,11 @@ def prepared_request_to_json(req):
         for header, value in req.headers.items():
             json_request['headers'][header] = value
 
+    if hasattr(req, 'cookies') and req.cookies is not None:
+        json_request['cookies'] = {}
+        for key in req.cookies.keys():
+            json_request['cookies'][key] = req.cookies[key]
+
     if hasattr(req, 'body'):
         json_request['body'] = req.body
 

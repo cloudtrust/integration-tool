@@ -292,8 +292,6 @@ def login_idp(s, header, idp_ip, idp_port, idp_scheme, idp_path, idp_username, i
 
     oath_cookie = response.cookies
 
-    print(response.headers)
-
     url_redirect = response.headers['Location']
 
     req_idp_redirect = Request(
@@ -358,11 +356,6 @@ def login_idp(s, header, idp_ip, idp_port, idp_scheme, idp_path, idp_username, i
     logger.debug(response.status_code)
 
     keycloak_cookie2 = response.cookies
-
-    print("the place where it stopped working")
-    print(response.headers)
-    print(response.text)
-    print(response.status_code)
 
     url_redirect = response.headers['Location']
 
