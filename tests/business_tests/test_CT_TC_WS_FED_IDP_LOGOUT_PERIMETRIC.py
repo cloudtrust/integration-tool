@@ -7,7 +7,6 @@
 import pytest
 import logging
 import re
-import time
 import json
 
 import helpers.requests as req
@@ -35,18 +34,15 @@ logger.setLevel(logging.DEBUG)
 @pytest.mark.usefixtures('settings', 'login_sso_form', scope='class')
 class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
     """
-    #todo: update!!
     Class to test the test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC use case:
-    As a resource owner I need the solution to ensure that all access tokens/sessions are invalidated and not usable
-    anymore after the user has proceeded to a logout on the target application.
+    As a compliance manager I need the solution to ensure that all access tokens/sessions for all applications are
+    invalidated and not usable anymore after the user has proceeded to a logout on the target application.
     """
 
-    def test_CT_TC_SAML_IDP_LOGOUT_PERIMETRIC(self, settings, login_sso_form):
+    def test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC(self, settings, login_sso_form):
         """
-        #todo: update
-        Test the CT_TC_WS_FED_IDP_LOGOUT_SIMPLE use case with the SP-initiated flow, i.e. the user that accessed the SP
-        asks to be logged out. This will trigger the logout to be performed on the IDP side and the user will
-        be able to see the "You're logged out" page.
+        Scenario: user is logged in on several SPs.
+        The user logs out of one SP. Access to all the other SPs should require a new log in.
         :param settings:
         :return:
         """
@@ -61,7 +57,7 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
         sp_message = settings["service_provider"]["logged_out_message"]
         sp_path = settings["service_provider"]["path"]
 
-        # Service provider settings
+        # Service provider 2 settings
         sp2_ip = settings["service_provider2"]["ip"]
         sp2_port = settings["service_provider2"]["port"]
         sp2_scheme = settings["service_provider2"]["http_scheme"]
@@ -89,11 +85,11 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
 
         # User is logged in on SP1
 
-        # Perform login on  SP2
+        # Perform login on SP2
 
-        (session_cookie, response) = req.access_sp_saml(s, header, sp2_ip, sp2_port, sp2_scheme, sp2_path, idp_ip, idp_port)
+        response = req.access_sp_ws_fed(s, header, sp2_ip, sp2_port, sp2_scheme, sp2_path)
 
-        session_cookie2 = response.cookies
+        session_cookie = response.cookies
 
         redirect_url = response.headers['Location']
 
@@ -103,7 +99,7 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
             'Referer': "{ip}:{port}".format(ip=sp2_ip, port=sp2_port)
         }
 
-        response = req.redirect_to_idp(s, redirect_url, header_redirect_idp, {**keycloak_cookie, **session_cookie2})
+        response = req.redirect_to_idp(s, redirect_url, header_redirect_idp, {**keycloak_cookie})
 
         soup = BeautifulSoup(response.content, 'html.parser')
         form = soup.body.form
@@ -112,14 +108,13 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
         inputs = form.find_all('input')
         method_form = form.get('method')
 
-        # Get the saml response from the identity provider
-        token = {}
+        ws_fed_response = {}
         for input in inputs:
-            token[input.get('name')] = input.get('value')
+            ws_fed_response[input.get('name')] = input.get('value')
 
         (response, sp2_cookie) = req.access_sp_with_token(s, header, sp2_ip, sp2_port, idp_scheme, idp_ip, idp_port,
-                                                         method_form, url_form, token, session_cookie,
-                                                         session_cookie2)
+                                                         method_form, url_form, ws_fed_response, session_cookie,
+                                                         keycloak_cookie)
 
         # req_get_sp_login_reload_page = Request(
         #     method='GET',
@@ -151,10 +146,9 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
         # # the user is logged in and refreshing the page will return an OK
         # assert response.status_code == 200
 
-        # User is now logged in on both applications
+        # User is now logged in on both applications: SP1 and SP2
 
         # Logout from the first applications
-
         header_sp_logout_page = {
             **header,
             'Host': "{ip}:{port}".format(ip=sp_ip, port=sp_port),
@@ -191,127 +185,57 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
         # new session cookie
         session_cookie2 = response.cookies
 
-        # SP redirects me to IDP with a SAML request
-        soup = BeautifulSoup(response.content, 'html.parser')
+        redirect_url = response.headers['Location']
 
-        form = soup.body.form
-        url_form = form.get('action')
-        method_form = form.get('method')
-        inputs = form.find_all('input')
-
-        # Do a SAML request to the identity provider
-        saml_request = {}
-        for input in inputs:
-            saml_request[input.get('name')] = input.get('value')
-
-        header_redirect_idp = {
-            **header,
-            'Host': "{ip}:{port}".format(ip=idp_ip, port=idp_port),
-            'Referer': "{scheme}://{ip}:{port}/{path}".format(scheme=sp_scheme, ip=sp_ip, port=sp_port,
-                                                              path=sp_logout_path),
-        }
-
-        req_idp_saml_request = Request(
-            method=method_form,
-            url="{url}".format(url=url_form),
-            data=saml_request,
-            headers=header_redirect_idp
-        )
-
-        prepared_request = req_idp_saml_request.prepare()
-
-        logger.debug(
-            json.dumps(
-                prepared_request_to_json(req_idp_saml_request),
-                sort_keys=True,
-                indent=4,
-                separators=(',', ': ')
-            )
-        )
-
-        response = s.send(prepared_request, verify=False, allow_redirects=False)
-
-        logger.debug(response.status_code)
-
-        assert response.status_code == 200
-
-        soup = BeautifulSoup(response.content, 'html.parser')
-        form = soup.body.form
-
-        url_form = form.get('action')
-        inputs = form.find_all('input')
-        method_form = form.get('method')
-
-        # Get the saml response from the identity provider
-        saml_response = {}
-        for input in inputs:
-            saml_response[input.get('name')] = input.get('value')
-
-        header_idp_saml_response = {
-            **header,
-            'Host': "{ip}:{port}".format(ip=sp_ip, port=sp_port),
-            'Referer': "{scheme}://{ip}:{port}".format(scheme=idp_scheme, ip=idp_ip, port=idp_port),
-        }
-
-        # Provide to the SP the SAML response
-        req_sp_saml_response = Request(
-            method=method_form,
-            url="{url}".format(url=url_form),
-            data=saml_request,
-            headers=header_idp_saml_response
-        )
-
-        prepared_request = req_sp_saml_response.prepare()
-
-        logger.debug(
-            json.dumps(
-                prepared_request_to_json(req_sp_saml_response),
-                sort_keys=True,
-                indent=4,
-                separators=(',', ': ')
-            )
-        )
-
-        response = s.send(prepared_request, verify=False, allow_redirects=False)
-
-        logger.debug(response.status_code)
-
-        url_sp = response.headers['Location']
-
-        req_logout = Request(
+        req_sp_logout_redirect = Request(
             method='GET',
-            url="{url}".format(url=url_sp),
-            headers=header_idp_saml_response
+            url= redirect_url,
+            headers=header_sp_logout_page,
+            cookies={**sp_cookie}
         )
 
-        prepared_request = req_logout.prepare()
+        prepared_request = req_sp_logout_redirect.prepare()
 
         logger.debug(
             json.dumps(
-                prepared_request_to_json(req_logout),
+                prepared_request_to_json(req_sp_logout_redirect),
                 sort_keys=True,
                 indent=4,
                 separators=(',', ': ')
             )
         )
 
-        response = s.send(prepared_request, verify=False)
+        response = s.send(prepared_request, verify=False, allow_redirects=False)
 
         logger.debug(response.status_code)
 
+        redirect_url = response.headers['Location']
+
+        response = req.redirect_to_idp(s, redirect_url, header, sp_cookie)
+
         assert response.status_code == 200
 
-        # Assert the logout page is displayed
+        soup = BeautifulSoup(response.content, 'html.parser')
+
+        form = soup.body.form
+        url_form = form.get('action')
+        method_form = form.get('method')
+        inputs = form.find_all('input')
+
+        # Send ws fed response
+        token = {}
+        for input in inputs:
+            token[input.get('name')] = input.get('value')
+
+        (response, cookie) = req.access_sp_with_token(s, header, sp_ip, sp_port, idp_scheme, idp_ip, idp_port,
+                                                      method_form, url_form, token, sp_cookie, sp_cookie)
+
+        assert response.status_code == 200
+
         assert re.search(sp_message, response.text) is not None
 
         # Check that when the user accesses the secured page of SP1 with the old session cookie,
-        # he receives a 200 with the SAMl request
-
-        header_sp_reload_page = {
-            **header,
-            'Host': "{ip}:{port}".format(ip=sp_ip, port=sp_port),
-            'Referer': "{scheme}://{ip}:{port}".format(scheme=idp_scheme, ip=idp_ip, port=idp_port)
-        }
+        # he is redirected to log in
 
         req_get_sp_login_reload_page = Request(
             method='GET',
@@ -321,7 +245,7 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
                 ip=sp_ip,
                 path=sp_path
             ),
-            headers=header_sp_reload_page,
+            headers=header,
             cookies={**session_cookie}
         )
 
@@ -340,29 +264,14 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
 
         logger.debug(response.status_code)
 
-        assert response.status_code == 200
+        # Assert that the refresh page gives a 302 which signals that the user is logged out of SP
+        assert response.status_code == 302
 
-        # Response should return a form that requests a post with RelayState and SAMLRequest as input
-        soup = BeautifulSoup(response.content, 'html.parser')
-
-        form = soup.body.form
-        inputs = form.find_all('input')
-
-        # Check we get RelayState and SAMLRequest
-        input_name = []
-        for input in inputs:
-            input_name.append(input.get('name'))
-
-        assert "RelayState" in input_name
-        assert "SAMLRequest" in input_name
-
-        # Check if the user is logged out from SP2: perform a refresh of the page; we expect to get a 200 with a form
-        # containing the SAMLRequest
+        # Check if the user is logged out from SP2: perform a refresh of the page; we expect to get a redirect
 
         header_sp2_reload_page = {
             **header,
             'Host': "{ip}:{port}".format(ip=sp2_ip, port=sp2_port),
-            'Referer': "{scheme}://{ip}:{port}".format(scheme=idp_scheme, ip=idp_ip, port=idp_port)
         }
 
         req_get_sp_login_reload_page = Request(
@@ -392,19 +301,5 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
 
         logger.debug(response.status_code)
 
-        assert response.status_code == 200
-
-        # Response should return a form that requests a post with RelayState and SAMLRequest as input
-        soup = BeautifulSoup(response.content, 'html.parser')
-
-        form = soup.body.form
-        inputs = form.find_all('input')
-
-        # Check we get RelaYState and SAMLRequest
-        input_name = []
-        for input in inputs:
-            input_name.append(input.get('name'))
-
-        assert "RelayState" in input_name
-        assert "SAMLRequest" in input_name
-
+        # Assert that the refresh page gives a 302 which signals that the user is logged out of SP2
+        assert response.status_code == 302
