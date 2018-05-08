@@ -59,6 +59,7 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
         sp_scheme = settings["service_provider"]["http_scheme"]
         sp_logout_path = settings["service_provider"]["logout_path"]
         sp_message = settings["service_provider"]["logged_out_message"]
+        sp_path = settings["service_provider"]["path"]
 
         # Service provider settings
         sp2_ip = settings["service_provider2"]["ip"]
@@ -86,9 +87,9 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
         # Perform login using the fixture login_sso_form
         sp_cookie, keycloak_cookie = login_sso_form
 
-        # User is logged in for the first SP
+        # User is logged in for SP1
 
-        # Perform login on the second SP
+        # Perform login on SP2
 
         response = req.access_sp_ws_fed(s, header, sp2_ip, sp2_port, sp2_scheme, sp2_path)
 
@@ -119,12 +120,6 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
         (response, sp2_cookie) = req.access_sp_with_token(s, header, sp2_ip, sp2_port, idp_scheme, idp_ip, idp_port,
                                                          method_form, url_form, ws_fed_response, session_cookie,
                                                          keycloak_cookie)
-
-        header_sp2_reload_page = {
-                 **header,
-                 'Host': "{ip}:{port}".format(ip=sp2_ip, port=sp2_port),
-                 'Referer': "{scheme}://{ip}:{port}".format(scheme=idp_scheme, ip=idp_ip, port=idp_port) # why the referer is the IDP?
-             }
 
         # req_get_sp_login_reload_page = Request(
         #     method='GET',
@@ -193,7 +188,7 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
         logger.debug(response.status_code)
 
         # new session cookie
-        session_cookie = response.cookies
+        session_cookie2 = response.cookies
 
         redirect_url = response.headers['Location']
 
@@ -244,21 +239,20 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
 
         assert re.search(sp_message, response.text) is not None
 
-        #Check if the user is logged out from the second applicaton: perform a refresh of the page; we expect to get a redirect
+        # Check that when the user accesses the secured page of SP1 with the old session cookie,
+        # he is redirected to log in
 
         req_get_sp_login_reload_page = Request(
             method='GET',
             url="{scheme}://{ip}:{port}/{path}".format(
-                scheme=sp2_scheme,
-                port=sp2_port,
-                ip=sp2_ip,
-                path=sp2_path
+                scheme=sp_scheme,
+                port=sp_port,
+                ip=sp_ip,
+                path=sp_path
             ),
-            headers=header_sp2_reload_page,
+            headers=header,
             cookies={**session_cookie}
         )
-
-        # todo: ask about the session cookie!!
 
         prepared_request = req_get_sp_login_reload_page.prepare()
 
@@ -275,4 +269,42 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
 
         logger.debug(response.status_code)
 
+        # Assert that the refresh page gives a 302 which signals that the user is logged out of SP
+        assert response.status_code == 302
+
+        # Check if the user is logged out from SP2: perform a refresh of the page; we expect to get a redirect
+
+        header_sp2_reload_page = {
+            **header,
+            'Host': "{ip}:{port}".format(ip=sp2_ip, port=sp2_port),
+        }
+
+        req_get_sp_login_reload_page = Request(
+            method='GET',
+            url="{scheme}://{ip}:{port}/{path}".format(
+                scheme=sp2_scheme,
+                port=sp2_port,
+                ip=sp2_ip,
+                path=sp2_path
+            ),
+            headers=header_sp2_reload_page,
+            cookies={**session_cookie}
+        )
+
+        prepared_request = req_get_sp_login_reload_page.prepare()
+
+        logger.debug(
+            json.dumps(
+                prepared_request_to_json(req_get_sp_login_reload_page),
+                sort_keys=True,
+                indent=4,
+                separators=(',', ': ')
+            )
+        )
+
+        response = s.send(prepared_request, verify=False, allow_redirects=False)
+
+        logger.debug(response.status_code)
+
+        # Assert that the refresh page gives a 302 which signals that the user is logged out of SP2
         assert response.status_code == 302
