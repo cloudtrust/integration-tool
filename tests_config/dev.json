@@ -26,5 +26,92 @@
     "logged_in_message": "Keycloak Account Management",
     "username" : "test1",
     "password" : "admin"
+  },
+  "sps_saml": [
+    {
+      "name": "sp_saml1",
+      "protocol": "saml",
+      "ip": "127.0.0.1",
+      "port": "9000",
+      "http_scheme": "http",
+      "path": "tokenInformation",
+      "logout_path": "singleLogout",
+      "logged_in_message": "Login successful, welcome",
+      "logged_out_message": "You have logged out"
+    },
+    {
+      "name": "sp_saml2",
+      "protocol": "saml",
+      "ip": "127.0.0.1",
+      "port": "9001",
+      "http_scheme": "http",
+      "path": "tokenInformation",
+      "logout_path": "singleLogout",
+      "logged_in_message": "Login successful, welcome",
+      "logged_out_message": "You have logged out"
+    },
+    {
+      "name": "sp_saml3",
+      "protocol": "saml",
+      "ip": "127.0.0.1",
+      "port": "9002",
+      "http_scheme": "http",
+      "path": "tokenInformation",
+      "logout_path": "singleLogout",
+      "logged_in_message": "Login successful, welcome",
+      "logged_out_message": "You have logged out"
+    }
+  ],
+  "sps_wsfed": [
+    {
+      "name": "sp_wsfed1",
+      "protocol": "wsfed",
+      "ip": "127.0.0.1",
+      "port": "7000",
+      "http_scheme": "http",
+      "path": "tokenInformation",
+      "logout_path": "singleLogout",
+      "logged_in_message": "Login successful, welcome",
+      "logged_out_message": "You have logged out"
+    },
+    {
+      "name": "sp_wsfed2",
+      "protocol": "wsfed",
+      "ip": "127.0.0.1",
+      "port": "7001",
+      "http_scheme": "http",
+      "path": "tokenInformation",
+      "logout_path": "singleLogout",
+      "logged_in_message": "Login successful, welcome",
+      "logged_out_message": "You have logged out"
+    },
+    {
+      "name": "sp_wsfed3",
+      "protocol": "wsfed",
+      "ip": "127.0.0.1",
+      "port": "7002",
+      "http_scheme": "http",
+      "path": "tokenInformation",
+      "logout_path": "singleLogout",
+      "logged_in_message": "Login successful, welcome",
+      "logged_out_message": "You have logged out"
+    }
+  ],
+  "idp":{
+    "ip" : "127.0.0.1",
+    "port" : "8080",
+    "path": "auth/realms/keycloak_testing/account",
+    "http_scheme" : "http",
+    "login_form_id": "kc-form-login",
+    "logged_in_message": "Keycloak Account Management",
+    "master_realm":{
+      "name": "master",
+      "username": "admin",
+      "password": "admin",
+      "client_id": "admin-cli"
+    },
+    "test_realm":{
+      "name": "keycloak_testing2"
+    }
   }
 }

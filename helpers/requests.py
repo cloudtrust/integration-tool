@@ -2,6 +2,7 @@ import json
 import logging
 
 from helpers.logging import prepared_request_to_json
+from helpers.logging import log_request
 
 from bs4 import BeautifulSoup
 from requests import Request
@@ -409,6 +410,31 @@ def login_idp(s, header, idp_ip, idp_port, idp_scheme, idp_path, idp_username, i
 
     return oath_cookie, keycloak_cookie, keycloak_cookie2, response
 
+
+def get_access_token(s, data, idp_scheme, idp_port, idp_ip, realm_id):
+
+    req_get_access_token = Request(
+        method='POST',
+        url="{scheme}://{ip}:{port}/auth/realms/{realm}/protocol/openid-connect/token".format(
+            scheme=idp_scheme,
+            ip=idp_ip,
+            port=idp_port,
+            realm=realm_id
+        ),
+        data=data
+    )
+
+    prepared_request = req_get_access_token.prepare()
+
+    log_request(logger, req_get_access_token)
+
+    response = s.send(prepared_request, verify=False)
+
+    logger.debug(response.status_code)
+
+    access_token = json.loads(response.text)['access_token']
+
+    return access_token
 
 
 

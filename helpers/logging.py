@@ -22,6 +22,7 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 #
+import json
 
 author = "Sebastien Pasche"
 maintainer = "Sebastien Pasche"
@@ -51,3 +52,13 @@ def prepared_request_to_json(req):
 
     return json_request
 
+
+def log_request(logger, req):
+    logger.debug(
+        json.dumps(
+            prepared_request_to_json(req),
+            sort_keys=True,
+            indent=4,
+            separators=(',', ': ')
+        )
+    )
