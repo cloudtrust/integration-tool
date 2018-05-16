@@ -60,7 +60,7 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
         sp_logout_path = sp1["logout_path"]
         sp_message = sp1["logged_out_message"]
 
-        sp2 = settings["sps_saml"][0]
+        sp2 = settings["sps_saml"][1]
         sp2_ip = sp2["ip"]
         sp2_port = sp2["port"]
         sp2_scheme = sp2["http_scheme"]

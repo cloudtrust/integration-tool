@@ -27,7 +27,7 @@ logging.basicConfig(
     format='%(asctime)s %(name)s %(levelname)s %(message)s',
     datefmt='%m/%d/%Y %I:%M:%S %p'
 )
-logger = logging.getLogger('test_CT_TC_SAML_SSO_FORM_SIMPLE')
+logger = logging.getLogger('acceptance-tool.tests.business_tests.test_CT_TC_SAML_SSO_FORM_SIMPLE')
 logger.setLevel(logging.DEBUG)
 
 
@@ -52,19 +52,20 @@ class Test_CT_TC_WS_FED_SSO_FORM_SIMPLE():
         s = Session()
 
         # Service provider settings
-        sp_ip = settings["service_provider"]["ip"]
-        sp_port = settings["service_provider"]["port"]
-        sp_scheme = settings["service_provider"]["http_scheme"]
-        sp_path = settings["service_provider"]["path"]
-        sp_message = settings["service_provider"]["logged_in_message"]
+        sp = settings["sps_wsfed"][0]
+        sp_ip = sp["ip"]
+        sp_port = sp["port"]
+        sp_scheme = sp["http_scheme"]
+        sp_path = sp["path"]
+        sp_message = sp["logged_in_message"]
 
         # Identity provider settings
-        idp_ip = settings["identity_provider"]["ip"]
-        idp_port = settings["identity_provider"]["port"]
-        idp_scheme = settings["identity_provider"]["http_scheme"]
+        idp_ip = settings["idp"]["ip"]
+        idp_port = settings["idp"]["port"]
+        idp_scheme = settings["idp"]["http_scheme"]
 
-        idp_username = settings["identity_provider"]["username"]
-        idp_password = settings["identity_provider"]["password"]
+        idp_username = settings["idp"]["test_realm"]["username"]
+        idp_password = settings["idp"]["test_realm"]["password"]
 
         keycloak_login_form_id = settings["identity_provider"]["login_form_id"]
 
@@ -78,7 +79,7 @@ class Test_CT_TC_WS_FED_SSO_FORM_SIMPLE():
             'Upgrade-Insecure-Requests': "1",
         }
 
-        response = req.access_sp_ws_fed(s, header, sp_ip, sp_port, sp_scheme, sp_path)
+        response = req.access_sp_ws_fed(logger, s, header, sp_ip, sp_port, sp_scheme, sp_path)
 
         session_cookie = response.cookies
 
@@ -90,7 +91,7 @@ class Test_CT_TC_WS_FED_SSO_FORM_SIMPLE():
             'Referer': "{ip}:{port}".format(ip=sp_ip, port=sp_port)
         }
 
-        response = req.redirect_to_idp(s, redirect_url, header_redirect_idp, session_cookie)
+        response = req.redirect_to_idp(logger, s, redirect_url, header_redirect_idp, session_cookie)
 
         keycloak_cookie = response.cookies
 
@@ -117,7 +118,7 @@ class Test_CT_TC_WS_FED_SSO_FORM_SIMPLE():
         credentials_data["username"] = idp_username
         credentials_data["password"] = idp_password
 
-        response = req.send_credentials_to_idp(s, header, idp_ip, idp_port, redirect_url, url_form, credentials_data,
+        response = req.send_credentials_to_idp(logger, s, header, idp_ip, idp_port, redirect_url, url_form, credentials_data,
                                                keycloak_cookie, method_form)
 
         # print(response.text)
@@ -138,7 +139,7 @@ class Test_CT_TC_WS_FED_SSO_FORM_SIMPLE():
         for input in inputs:
             ws_fed_response[input.get('name')] = input.get('value')
 
-        (response, sp_cookie) = req.access_sp_with_token(s, header, sp_ip, sp_port, idp_scheme, idp_ip, idp_port,
+        (response, sp_cookie) = req.access_sp_with_token(logger, s, header, sp_ip, sp_port, idp_scheme, idp_ip, idp_port,
                                                               method_form, url_form, ws_fed_response, session_cookie,
                                                               keycloak_cookie_2)
 
@@ -160,21 +161,23 @@ class Test_CT_TC_WS_FED_SSO_FORM_SIMPLE():
         s = Session()
 
         # Service provider settings
-        sp_ip = settings["service_provider"]["ip"]
-        sp_port = settings["service_provider"]["port"]
-        sp_scheme = settings["service_provider"]["http_scheme"]
-        sp_path = settings["service_provider"]["path"]
-        sp_message = settings["service_provider"]["logged_in_message"]
+        sp = settings["sps_wsfed"][0]
+        sp_ip = sp["ip"]
+        sp_port = sp["port"]
+        sp_scheme = sp["http_scheme"]
+        sp_path = sp["path"]
+        sp_message = sp["logged_in_message"]
 
         # Identity provider settings
-        idp_ip = settings["identity_provider"]["ip"]
-        idp_port = settings["identity_provider"]["port"]
-        idp_scheme = settings["identity_provider"]["http_scheme"]
-        idp_path = settings["identity_provider"]["path"]
-        idp_message = settings["identity_provider"]["logged_in_message"]
+        idp_ip = settings["idp"]["ip"]
+        idp_port = settings["idp"]["port"]
+        idp_scheme = settings["idp"]["http_scheme"]
+        idp_test_realm = settings["idp"]["test_realm"]["name"]
+        idp_path = "auth/realms/{realm}/account".format(realm=idp_test_realm)
+        idp_message = settings["idp"]["logged_in_message"]
 
-        idp_username = settings["identity_provider"]["username"]
-        idp_password = settings["identity_provider"]["password"]
+        idp_username = settings["idp"]["test_realm"]["username"]
+        idp_password = settings["idp"]["test_realm"]["password"]
 
         # Common header for all the requests
         header = {
@@ -186,7 +189,7 @@ class Test_CT_TC_WS_FED_SSO_FORM_SIMPLE():
             'Upgrade-Insecure-Requests': "1",
         }
 
-        (oath_cookie, keycloak_cookie, keycloak_cookie2, response) = req.login_idp(s, header, idp_ip, idp_port,
+        (oath_cookie, keycloak_cookie, keycloak_cookie2, response) = req.login_idp(logger, s, header, idp_ip, idp_port,
                                                                                    idp_scheme, idp_path, idp_username,
                                                                                    idp_password)
 
@@ -195,7 +198,7 @@ class Test_CT_TC_WS_FED_SSO_FORM_SIMPLE():
         # Assert we are logged in
         assert re.search(idp_message, response.text) is not None
 
-        response = req.access_sp_ws_fed(s, header, sp_ip, sp_port, sp_scheme, sp_path)
+        response = req.access_sp_ws_fed(logger, s, header, sp_ip, sp_port, sp_scheme, sp_path)
 
         # store the cookie received from keycloak
         session_cookie = response.cookies
@@ -210,7 +213,7 @@ class Test_CT_TC_WS_FED_SSO_FORM_SIMPLE():
             'Referer': "{ip}:{port}".format(ip=sp_ip, port=sp_port)
         }
 
-        response = req.redirect_to_idp(s, redirect_url, header_redirect_idp, {**keycloak_cookie2})
+        response = req.redirect_to_idp(logger, s, redirect_url, header_redirect_idp, {**keycloak_cookie2})
 
         assert response.status_code == 200
 
@@ -226,7 +229,7 @@ class Test_CT_TC_WS_FED_SSO_FORM_SIMPLE():
         for input in inputs:
             ws_fed_response[input.get('name')] = input.get('value')
 
-        (response, sp_cookie) = req.access_sp_with_token(s, header, sp_ip, sp_port, idp_scheme, idp_ip, idp_port,
+        (response, sp_cookie) = req.access_sp_with_token(logger, s, header, sp_ip, sp_port, idp_scheme, idp_ip, idp_port,
                                                               method_form, url_form, ws_fed_response, session_cookie,
                                                               keycloak_cookie2)
 

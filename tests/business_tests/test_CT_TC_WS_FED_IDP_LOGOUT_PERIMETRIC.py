@@ -11,6 +11,7 @@ import json
 
 import helpers.requests as req
 from helpers.logging import prepared_request_to_json
+from helpers.logging import log_request
 
 from bs4 import BeautifulSoup
 from requests import Request, Session
@@ -27,7 +28,7 @@ logging.basicConfig(
     format='%(asctime)s %(name)s %(levelname)s %(message)s',
     datefmt='%m/%d/%Y %I:%M:%S %p'
 )
-logger = logging.getLogger('test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC')
+logger = logging.getLogger('acceptance-tool.tests.business_tests.test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC')
 logger.setLevel(logging.DEBUG)
 
 
@@ -50,25 +51,26 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
         s = Session()
 
         # Service provider settings
-        sp_ip = settings["service_provider"]["ip"]
-        sp_port = settings["service_provider"]["port"]
-        sp_scheme = settings["service_provider"]["http_scheme"]
-        sp_logout_path = settings["service_provider"]["logout_path"]
-        sp_message = settings["service_provider"]["logged_out_message"]
-        sp_path = settings["service_provider"]["path"]
+        sp1 = settings["sps_wsfed"][0]
+        sp_ip = sp1["ip"]
+        sp_port = sp1["port"]
+        sp_scheme = sp1["http_scheme"]
+        sp_path = sp1["path"]
+        sp_logout_path = sp1["logout_path"]
+        sp_message = sp1["logged_out_message"]
 
-        # Service provider 2 settings
-        sp2_ip = settings["service_provider2"]["ip"]
-        sp2_port = settings["service_provider2"]["port"]
-        sp2_scheme = settings["service_provider2"]["http_scheme"]
-        sp2_logout_path = settings["service_provider2"]["logout_path"]
-        sp2_path = settings["service_provider2"]["path"]
-        sp2_message = settings["service_provider2"]["logged_in_message"]
+        sp2 = settings["sps_wsfed"][1]
+        sp2_ip = sp2["ip"]
+        sp2_port = sp2["port"]
+        sp2_scheme = sp2["http_scheme"]
+        sp2_path = sp2["path"]
+        sp2_logout_path = sp2["logout_path"]
+        sp2_message = sp2["logged_out_message"]
 
         # Identity provider settings
-        idp_ip = settings["identity_provider"]["ip"]
-        idp_port = settings["identity_provider"]["port"]
-        idp_scheme = settings["identity_provider"]["http_scheme"]
+        idp_ip = settings["idp"]["ip"]
+        idp_port = settings["idp"]["port"]
+        idp_scheme = settings["idp"]["http_scheme"]
 
         # Common header for all the requests
         header = {
@@ -87,7 +89,7 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
 
         # Perform login on SP2
 
-        response = req.access_sp_ws_fed(s, header, sp2_ip, sp2_port, sp2_scheme, sp2_path)
+        response = req.access_sp_ws_fed(logger, s, header, sp2_ip, sp2_port, sp2_scheme, sp2_path)
 
         session_cookie = response.cookies
 
@@ -99,7 +101,7 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
             'Referer': "{ip}:{port}".format(ip=sp2_ip, port=sp2_port)
         }
 
-        response = req.redirect_to_idp(s, redirect_url, header_redirect_idp, {**keycloak_cookie})
+        response = req.redirect_to_idp(logger, s, redirect_url, header_redirect_idp, {**keycloak_cookie})
 
         soup = BeautifulSoup(response.content, 'html.parser')
         form = soup.body.form
@@ -112,7 +114,7 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
         for input in inputs:
             ws_fed_response[input.get('name')] = input.get('value')
 
-        (response, sp2_cookie) = req.access_sp_with_token(s, header, sp2_ip, sp2_port, idp_scheme, idp_ip, idp_port,
+        (response, sp2_cookie) = req.access_sp_with_token(logger, s, header, sp2_ip, sp2_port, idp_scheme, idp_ip, idp_port,
                                                          method_form, url_form, ws_fed_response, session_cookie,
                                                          keycloak_cookie)
 
@@ -169,14 +171,7 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
 
         prepared_request = req_get_sp_logout_page.prepare()
 
-        logger.debug(
-            json.dumps(
-                prepared_request_to_json(req_get_sp_logout_page),
-                sort_keys=True,
-                indent=4,
-                separators=(',', ': ')
-            )
-        )
+        log_request(logger, req_get_sp_logout_page)
 
         response = s.send(prepared_request, verify=False, allow_redirects=False)
 
@@ -196,14 +191,7 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
 
         prepared_request = req_sp_logout_redirect.prepare()
 
-        logger.debug(
-            json.dumps(
-                prepared_request_to_json(req_sp_logout_redirect),
-                sort_keys=True,
-                indent=4,
-                separators=(',', ': ')
-            )
-        )
+        log_request(logger, req_sp_logout_redirect)
 
         response = s.send(prepared_request, verify=False, allow_redirects=False)
 
@@ -211,7 +199,7 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
 
         redirect_url = response.headers['Location']
 
-        response = req.redirect_to_idp(s, redirect_url, header, sp_cookie)
+        response = req.redirect_to_idp(logger, s, redirect_url, header, sp_cookie)
 
         assert response.status_code == 200
 
@@ -227,7 +215,7 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
         for input in inputs:
             token[input.get('name')] = input.get('value')
 
-        (response, cookie) = req.access_sp_with_token(s, header, sp_ip, sp_port, idp_scheme, idp_ip, idp_port,
+        (response, cookie) = req.access_sp_with_token(logger, s, header, sp_ip, sp_port, idp_scheme, idp_ip, idp_port,
                                                       method_form, url_form, token, sp_cookie, sp_cookie)
 
         assert response.status_code == 200
@@ -251,14 +239,7 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
 
         prepared_request = req_get_sp_login_reload_page.prepare()
 
-        logger.debug(
-            json.dumps(
-                prepared_request_to_json(req_get_sp_login_reload_page),
-                sort_keys=True,
-                indent=4,
-                separators=(',', ': ')
-            )
-        )
+        log_request(logger, req_get_sp_login_reload_page)
 
         response = s.send(prepared_request, verify=False, allow_redirects=False)
 
@@ -288,14 +269,7 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
 
         prepared_request = req_get_sp_login_reload_page.prepare()
 
-        logger.debug(
-            json.dumps(
-                prepared_request_to_json(req_get_sp_login_reload_page),
-                sort_keys=True,
-                indent=4,
-                separators=(',', ': ')
-            )
-        )
+        log_request(logger, req_get_sp_login_reload_page)
 
         response = s.send(prepared_request, verify=False, allow_redirects=False)
 
@@ -303,3 +277,4 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
 
         # Assert that the refresh page gives a 302 which signals that the user is logged out of SP2
         assert response.status_code == 302
+        # the assert will fail as the single logout does not work for wsfed
