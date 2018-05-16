@@ -10,7 +10,6 @@ import re
 import json
 
 import helpers.requests as req
-from helpers.logging import prepared_request_to_json
 
 from bs4 import BeautifulSoup
 from requests import Request, Session
@@ -27,7 +26,7 @@ logging.basicConfig(
     format='%(asctime)s %(name)s %(levelname)s %(message)s',
     datefmt='%m/%d/%Y %I:%M:%S %p'
 )
-logger = logging.getLogger('test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_KO')
+logger = logging.getLogger('acceptance-tool.tests.business_tests.test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_KO')
 logger.setLevel(logging.DEBUG)
 
 
@@ -88,7 +87,7 @@ class Test_test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_KO():
 
         # Perform login to SP1
 
-        (session_cookie, response) = req.access_sp_saml(s, header, sp_ip, sp_port, sp_scheme, sp_path,
+        (session_cookie, response) = req.access_sp_saml(logger, s, header, sp_ip, sp_port, sp_scheme, sp_path,
                                                         idp_ip, idp_port)
 
         assert response.status_code == 302
@@ -104,7 +103,7 @@ class Test_test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_KO():
             'Referer': "{ip}:{port}".format(ip=sp_ip, port=sp_port)
         }
 
-        response = req.redirect_to_idp(s, redirect_url, header_redirect_idp, keycloak_cookie)
+        response = req.redirect_to_idp(logger, s, redirect_url, header_redirect_idp, keycloak_cookie)
 
         soup = BeautifulSoup(response.content, 'html.parser')
 
@@ -129,7 +128,7 @@ class Test_test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_KO():
         credentials_data["username"] = idp_username
         credentials_data["password"] = idp_password
 
-        response = req.send_credentials_to_idp(s, header, idp_ip, idp_port, redirect_url, url_form, credentials_data,
+        response = req.send_credentials_to_idp(logger, s, header, idp_ip, idp_port, redirect_url, url_form, credentials_data,
                                                keycloak_cookie, method_form)
 
         assert response.status_code == 200 or response.status_code == 302 or response.status_code == 303 or response.status_code == 307
@@ -150,7 +149,7 @@ class Test_test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_KO():
 
         print("saml response {resp}".format(resp=saml_response))
 
-        (response, sp_cookie) = req.access_sp_with_token(s, header, sp_ip, sp_port, idp_scheme, idp_ip, idp_port,
+        (response, sp_cookie) = req.access_sp_with_token(logger, s, header, sp_ip, sp_port, idp_scheme, idp_ip, idp_port,
                                                          method_form, url_form, saml_response, session_cookie,
                                                          keycloak_cookie_2)
 
@@ -163,7 +162,7 @@ class Test_test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_KO():
 
         # Attempt to perform login on SP2
 
-        (session_cookie, response) = req.access_sp_saml(s, header, sp2_ip, sp2_port, sp2_scheme, sp2_path, idp_ip,
+        (session_cookie, response) = req.access_sp_saml(logger, s, header, sp2_ip, sp2_port, sp2_scheme, sp2_path, idp_ip,
                                                         idp_port)
 
         session_cookie2 = response.cookies
@@ -176,7 +175,7 @@ class Test_test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_KO():
             'Referer': "{ip}:{port}".format(ip=sp2_ip, port=sp2_port)
         }
 
-        response = req.redirect_to_idp(s, redirect_url, header_redirect_idp, {**session_cookie2, **keycloak_cookie_2})
+        response = req.redirect_to_idp(logger, s, redirect_url, header_redirect_idp, {**session_cookie2, **keycloak_cookie_2})
 
         # Assert that the client is not authorized to access SP2
         assert response.status_code == 403

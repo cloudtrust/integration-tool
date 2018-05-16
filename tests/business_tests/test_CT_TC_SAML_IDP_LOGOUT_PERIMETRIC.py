@@ -11,6 +11,7 @@ import json
 
 import helpers.requests as req
 from helpers.logging import prepared_request_to_json
+from helpers.logging import log_request
 
 from bs4 import BeautifulSoup
 from requests import Request, Session
@@ -27,7 +28,7 @@ logging.basicConfig(
     format='%(asctime)s %(name)s %(levelname)s %(message)s',
     datefmt='%m/%d/%Y %I:%M:%S %p'
 )
-logger = logging.getLogger('test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC')
+logger = logging.getLogger('acceptance-tool.tests.business_tests.test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC')
 logger.setLevel(logging.DEBUG)
 
 
@@ -89,7 +90,7 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
 
         # Perform login on  SP2
 
-        (session_cookie, response) = req.access_sp_saml(s, header, sp2_ip, sp2_port, sp2_scheme, sp2_path, idp_ip, idp_port)
+        (session_cookie, response) = req.access_sp_saml(logger, s, header, sp2_ip, sp2_port, sp2_scheme, sp2_path, idp_ip, idp_port)
 
         session_cookie2 = response.cookies
 
@@ -101,7 +102,7 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
             'Referer': "{ip}:{port}".format(ip=sp2_ip, port=sp2_port)
         }
 
-        response = req.redirect_to_idp(s, redirect_url, header_redirect_idp, {**keycloak_cookie, **session_cookie2})
+        response = req.redirect_to_idp(logger, s, redirect_url, header_redirect_idp, {**keycloak_cookie, **session_cookie2})
 
         soup = BeautifulSoup(response.content, 'html.parser')
         form = soup.body.form
@@ -115,7 +116,7 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
         for input in inputs:
             token[input.get('name')] = input.get('value')
 
-        (response, sp2_cookie) = req.access_sp_with_token(s, header, sp2_ip, sp2_port, idp_scheme, idp_ip, idp_port,
+        (response, sp2_cookie) = req.access_sp_with_token(logger, s, header, sp2_ip, sp2_port, idp_scheme, idp_ip, idp_port,
                                                          method_form, url_form, token, session_cookie,
                                                          session_cookie2)
 
@@ -173,14 +174,7 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
 
         prepared_request = req_get_sp_logout_page.prepare()
 
-        logger.debug(
-            json.dumps(
-                prepared_request_to_json(req_get_sp_logout_page),
-                sort_keys=True,
-                indent=4,
-                separators=(',', ': ')
-            )
-        )
+        log_request(logger, req_get_sp_logout_page)
 
         response = s.send(prepared_request, verify=False, allow_redirects=False)
 
@@ -218,14 +212,7 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
 
         prepared_request = req_idp_saml_request.prepare()
 
-        logger.debug(
-            json.dumps(
-                prepared_request_to_json(req_idp_saml_request),
-                sort_keys=True,
-                indent=4,
-                separators=(',', ': ')
-            )
-        )
+        log_request(logger, req_idp_saml_request)
 
         response = s.send(prepared_request, verify=False, allow_redirects=False)
 
@@ -261,14 +248,7 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
 
         prepared_request = req_sp_saml_response.prepare()
 
-        logger.debug(
-            json.dumps(
-                prepared_request_to_json(req_sp_saml_response),
-                sort_keys=True,
-                indent=4,
-                separators=(',', ': ')
-            )
-        )
+        log_request(logger, req_sp_saml_response)
 
         response = s.send(prepared_request, verify=False, allow_redirects=False)
 
@@ -284,14 +264,7 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
 
         prepared_request = req_logout.prepare()
 
-        logger.debug(
-            json.dumps(
-                prepared_request_to_json(req_logout),
-                sort_keys=True,
-                indent=4,
-                separators=(',', ': ')
-            )
-        )
+        log_request(logger, req_logout)
 
         response = s.send(prepared_request, verify=False)
 
@@ -325,14 +298,7 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
 
         prepared_request = req_get_sp_login_reload_page.prepare()
 
-        logger.debug(
-            json.dumps(
-                prepared_request_to_json(req_get_sp_login_reload_page),
-                sort_keys=True,
-                indent=4,
-                separators=(',', ': ')
-            )
-        )
+        log_request(logger, req_get_sp_login_reload_page)
 
         response = s.send(prepared_request, verify=False, allow_redirects=False)
 
@@ -377,14 +343,7 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
 
         prepared_request = req_get_sp_login_reload_page.prepare()
 
-        logger.debug(
-            json.dumps(
-                prepared_request_to_json(req_get_sp_login_reload_page),
-                sort_keys=True,
-                indent=4,
-                separators=(',', ': ')
-            )
-        )
+        log_request(logger, req_get_sp_login_reload_page)
 
         response = s.send(prepared_request, verify=False, allow_redirects=False)
 

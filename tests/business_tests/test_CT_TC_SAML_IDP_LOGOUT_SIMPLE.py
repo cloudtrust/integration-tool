@@ -10,6 +10,7 @@ import re
 import json
 
 from helpers.logging import prepared_request_to_json
+from helpers.logging import log_request
 
 from bs4 import BeautifulSoup
 from requests import Request, Session
@@ -26,7 +27,7 @@ logging.basicConfig(
     format='%(asctime)s %(name)s %(levelname)s %(message)s',
     datefmt='%m/%d/%Y %I:%M:%S %p'
 )
-logger = logging.getLogger('test_CT_TC_SAML_IDP_LOGOUT_SIMPLE')
+logger = logging.getLogger('acceptance-tool.tests.business_tests.test_CT_TC_SAML_IDP_LOGOUT_SIMPLE')
 logger.setLevel(logging.DEBUG)
 
 
@@ -98,14 +99,7 @@ class Test_test_CT_TC_SAML_IDP_LOGOUT_SIMPLE():
 
         prepared_request = req_get_sp_logout_page.prepare()
 
-        logger.debug(
-            json.dumps(
-                prepared_request_to_json(req_get_sp_logout_page),
-                sort_keys=True,
-                indent=4,
-                separators=(',', ': ')
-            )
-        )
+        log_request(logger, req_get_sp_logout_page)
 
         response = s.send(prepared_request, verify=False, allow_redirects=False)
 
@@ -141,14 +135,7 @@ class Test_test_CT_TC_SAML_IDP_LOGOUT_SIMPLE():
 
         prepared_request = req_idp_saml_request.prepare()
 
-        logger.debug(
-            json.dumps(
-                prepared_request_to_json(req_idp_saml_request),
-                sort_keys=True,
-                indent=4,
-                separators=(',', ': ')
-            )
-        )
+        log_request(logger, req_idp_saml_request)
 
         response = s.send(prepared_request, verify=False, allow_redirects=False)
 
@@ -184,14 +171,7 @@ class Test_test_CT_TC_SAML_IDP_LOGOUT_SIMPLE():
 
         prepared_request = req_sp_saml_response.prepare()
 
-        logger.debug(
-            json.dumps(
-                prepared_request_to_json(req_sp_saml_response),
-                sort_keys=True,
-                indent=4,
-                separators=(',', ': ')
-            )
-        )
+        log_request(logger, req_sp_saml_response)
 
         response = s.send(prepared_request, verify=False, allow_redirects=False)
 
@@ -207,14 +187,7 @@ class Test_test_CT_TC_SAML_IDP_LOGOUT_SIMPLE():
 
         prepared_request = req_logout.prepare()
 
-        logger.debug(
-            json.dumps(
-                prepared_request_to_json(req_logout),
-                sort_keys=True,
-                indent=4,
-                separators=(',', ': ')
-            )
-        )
+        log_request(logger, req_logout)
 
         response = s.send(prepared_request, verify=False)
 

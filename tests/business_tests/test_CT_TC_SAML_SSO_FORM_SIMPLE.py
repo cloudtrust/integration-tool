@@ -25,7 +25,7 @@ logging.basicConfig(
     format='%(asctime)s %(name)s %(levelname)s %(message)s',
     datefmt='%m/%d/%Y %I:%M:%S %p'
 )
-logger = logging.getLogger('test_CT_TC_SAML_SSO_FORM_SIMPLE')
+logger = logging.getLogger('acceptance-tool.tests.business_tests.test_CT_TC_SAML_SSO_FORM_SIMPLE')
 logger.setLevel(logging.DEBUG)
 
 
@@ -77,7 +77,7 @@ class Test_CT_TC_SAML_SSO_FORM_SIMPLE():
             'Upgrade-Insecure-Requests': "1",
         }
 
-        (session_cookie, response) = req.access_sp_saml(s, header, sp_ip, sp_port, sp_scheme, sp_path,
+        (session_cookie, response) = req.access_sp_saml(logger, s, header, sp_ip, sp_port, sp_scheme, sp_path,
                                                                         idp_ip, idp_port)
 
         assert response.status_code == 302
@@ -93,7 +93,7 @@ class Test_CT_TC_SAML_SSO_FORM_SIMPLE():
             'Referer': "{ip}:{port}".format(ip=sp_ip, port=sp_port)
         }
 
-        response = req.redirect_to_idp(s, redirect_url, header_redirect_idp, keycloak_cookie)
+        response = req.redirect_to_idp(logger, s, redirect_url, header_redirect_idp, keycloak_cookie)
 
         soup = BeautifulSoup(response.content, 'html.parser')
 
@@ -118,7 +118,7 @@ class Test_CT_TC_SAML_SSO_FORM_SIMPLE():
         credentials_data["username"] = idp_username
         credentials_data["password"] = idp_password
 
-        response = req.send_credentials_to_idp(s, header, idp_ip, idp_port, redirect_url, url_form, credentials_data, keycloak_cookie, method_form)
+        response = req.send_credentials_to_idp(logger, s, header, idp_ip, idp_port, redirect_url, url_form, credentials_data, keycloak_cookie, method_form)
 
         assert response.status_code == 200 or response.status_code == 302 or response.status_code == 303 or response.status_code == 307
 
@@ -136,7 +136,7 @@ class Test_CT_TC_SAML_SSO_FORM_SIMPLE():
         for input in inputs:
             saml_response[input.get('name')] = input.get('value')
 
-        (response, sp_cookie) = req.access_sp_with_token(s, header, sp_ip, sp_port, idp_scheme, idp_ip, idp_port,
+        (response, sp_cookie) = req.access_sp_with_token(logger, s, header, sp_ip, sp_port, idp_scheme, idp_ip, idp_port,
                                                           method_form, url_form, saml_response, session_cookie,
                                                           keycloak_cookie_2)
 
@@ -188,7 +188,7 @@ class Test_CT_TC_SAML_SSO_FORM_SIMPLE():
             'Upgrade-Insecure-Requests': "1",
         }
 
-        (oath_cookie, keycloak_cookie, keycloak_cookie2, response) = req.login_idp(s, header, idp_ip, idp_port, idp_scheme,
+        (oath_cookie, keycloak_cookie, keycloak_cookie2, response) = req.login_idp(logger, s, header, idp_ip, idp_port, idp_scheme,
                                                                                 idp_path, idp_username, idp_password)
 
         assert response.status_code == 200
@@ -196,7 +196,7 @@ class Test_CT_TC_SAML_SSO_FORM_SIMPLE():
         # Assert we are logged in
         assert re.search(idp_message, response.text) is not None
 
-        (session_cookie, response) = req.access_sp_saml(s, header, sp_ip, sp_port, sp_scheme, sp_path, idp_ip, idp_port)
+        (session_cookie, response) = req.access_sp_saml(logger, s, header, sp_ip, sp_port, sp_scheme, sp_path, idp_ip, idp_port)
 
         # store the cookie received from keycloak
         keycloak_cookie3 = response.cookies
@@ -211,7 +211,7 @@ class Test_CT_TC_SAML_SSO_FORM_SIMPLE():
             'Referer': "{ip}:{port}".format(ip=sp_ip, port=sp_port)
         }
 
-        response = req.redirect_to_idp(s, redirect_url, header_redirect_idp, {**keycloak_cookie3, **keycloak_cookie2})
+        response = req.redirect_to_idp(logger, s, redirect_url, header_redirect_idp, {**keycloak_cookie3, **keycloak_cookie2})
 
         assert response.status_code == 200
 
@@ -227,7 +227,7 @@ class Test_CT_TC_SAML_SSO_FORM_SIMPLE():
         for input in inputs:
             saml_response[input.get('name')] = input.get('value')
 
-        (response, sp_cookie) = req.access_sp_with_token(s, header, sp_ip, sp_port, idp_scheme, idp_ip, idp_port,
+        (response, sp_cookie) = req.access_sp_with_token(logger, s, header, sp_ip, sp_port, idp_scheme, idp_ip, idp_port,
                                                           method_form, url_form, saml_response, session_cookie,
                                                           keycloak_cookie2)
 

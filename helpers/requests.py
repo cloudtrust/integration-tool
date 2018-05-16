@@ -7,15 +7,8 @@ from helpers.logging import log_request
 from bs4 import BeautifulSoup
 from requests import Request
 
-logging.basicConfig(
-    format='%(asctime)s %(name)s %(levelname)s %(message)s',
-    datefmt='%m/%d/%Y %I:%M:%S %p'
-)
-logger = logging.getLogger('requests')
-logger.setLevel(logging.DEBUG)
 
-
-def access_sp_ws_fed(s, header, sp_ip, sp_port, sp_scheme, sp_path):
+def access_sp_ws_fed(logger, s, header, sp_ip, sp_port, sp_scheme, sp_path):
     # Access to the SP
     header_sp_page = {
         **header,
@@ -52,7 +45,7 @@ def access_sp_ws_fed(s, header, sp_ip, sp_port, sp_scheme, sp_path):
     return response
 
 
-def access_sp_saml(s, header, sp_ip, sp_port, sp_scheme, sp_path, idp_ip, idp_port):
+def access_sp_saml(logger, s, header, sp_ip, sp_port, sp_scheme, sp_path, idp_ip, idp_port):
 
     # Access to the SP
     header_sp_page = {
@@ -134,7 +127,7 @@ def access_sp_saml(s, header, sp_ip, sp_port, sp_scheme, sp_path, idp_ip, idp_po
     return session_cookie, response
 
 
-def access_sp_with_token(s, header, sp_ip, sp_port, idp_scheme, idp_ip, idp_port, method, url, token, session_cookie, keycloak_cookie):
+def access_sp_with_token(logger, s, header, sp_ip, sp_port, idp_scheme, idp_ip, idp_port, method, url, token, session_cookie, keycloak_cookie):
     # Perform a callback
     header_callback = {
         **header,
@@ -201,7 +194,7 @@ def access_sp_with_token(s, header, sp_ip, sp_port, idp_scheme, idp_ip, idp_port
     return response, sp_cookie
 
 
-def redirect_to_idp(s, redirect_url, header, cookie):
+def redirect_to_idp(logger, s, redirect_url, header, cookie):
     # Perform the redirect request of the identity provider
 
     req_get_keycloak = Request(
@@ -229,7 +222,7 @@ def redirect_to_idp(s, redirect_url, header, cookie):
     return response
 
 
-def send_credentials_to_idp(s, header, idp_ip, idp_port, redirect_url, url_form, credentials_data, cookie, method):
+def send_credentials_to_idp(logger, s, header, idp_ip, idp_port, redirect_url, url_form, credentials_data, cookie, method):
 
     header_login_keycloak = {
         **header,
@@ -262,7 +255,7 @@ def send_credentials_to_idp(s, header, idp_ip, idp_port, redirect_url, url_form,
     return response
 
 
-def login_idp(s, header, idp_ip, idp_port, idp_scheme, idp_path, idp_username, idp_password):
+def login_idp(logger, s, header, idp_ip, idp_port, idp_scheme, idp_path, idp_username, idp_password):
 
     # Requests access to the SP
     header_idp_page = {
@@ -411,7 +404,7 @@ def login_idp(s, header, idp_ip, idp_port, idp_scheme, idp_path, idp_username, i
     return oath_cookie, keycloak_cookie, keycloak_cookie2, response
 
 
-def get_access_token(s, data, idp_scheme, idp_port, idp_ip, realm_id):
+def get_access_token(logger, s, data, idp_scheme, idp_port, idp_ip, realm_id):
 
     req_get_access_token = Request(
         method='POST',
