@@ -51,25 +51,26 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
         s = Session()
 
         # Service provider settings
-        sp_ip = settings["service_provider"]["ip"]
-        sp_port = settings["service_provider"]["port"]
-        sp_scheme = settings["service_provider"]["http_scheme"]
-        sp_logout_path = settings["service_provider"]["logout_path"]
-        sp_message = settings["service_provider"]["logged_out_message"]
-        sp_path = settings["service_provider"]["path"]
+        sp1 = settings["sps_saml"][0]
+        sp_ip = sp1["ip"]
+        sp_port = sp1["port"]
+        sp_scheme = sp1["http_scheme"]
+        sp_path = sp1["path"]
+        sp_logout_path = sp1["logout_path"]
+        sp_message = sp1["logged_out_message"]
 
-        # Service provider settings
-        sp2_ip = settings["service_provider2"]["ip"]
-        sp2_port = settings["service_provider2"]["port"]
-        sp2_scheme = settings["service_provider2"]["http_scheme"]
-        sp2_logout_path = settings["service_provider2"]["logout_path"]
-        sp2_path = settings["service_provider2"]["path"]
-        sp2_message = settings["service_provider2"]["logged_in_message"]
+        sp2 = settings["sps_saml"][0]
+        sp2_ip = sp2["ip"]
+        sp2_port = sp2["port"]
+        sp2_scheme = sp2["http_scheme"]
+        sp2_path = sp2["path"]
+        sp2_logout_path = sp2["logout_path"]
+        sp2_message = sp2["logged_out_message"]
 
         # Identity provider settings
-        idp_ip = settings["identity_provider"]["ip"]
-        idp_port = settings["identity_provider"]["port"]
-        idp_scheme = settings["identity_provider"]["http_scheme"]
+        idp_ip = settings["idp"]["ip"]
+        idp_port = settings["idp"]["port"]
+        idp_scheme = settings["idp"]["http_scheme"]
 
         # Common header for all the requests
         header = {

@@ -50,21 +50,22 @@ class Test_CT_TC_SAML_SSO_FORM_SIMPLE():
         s = Session()
 
         # Service provider settings
-        sp_ip = settings["service_provider"]["ip"]
-        sp_port = settings["service_provider"]["port"]
-        sp_scheme = settings["service_provider"]["http_scheme"]
-        sp_path = settings["service_provider"]["path"]
-        sp_message = settings["service_provider"]["logged_in_message"]
+        sp = settings["sps_saml"][0]
+        sp_ip = sp["ip"]
+        sp_port = sp["port"]
+        sp_scheme = sp["http_scheme"]
+        sp_path = sp["path"]
+        sp_message = sp["logged_in_message"]
 
         # Identity provider settings
-        idp_ip = settings["identity_provider"]["ip"]
-        idp_port = settings["identity_provider"]["port"]
-        idp_scheme = settings["identity_provider"]["http_scheme"]
+        idp_ip = settings["idp"]["ip"]
+        idp_port = settings["idp"]["port"]
+        idp_scheme = settings["idp"]["http_scheme"]
 
-        idp_username = settings["identity_provider"]["username"]
-        idp_password = settings["identity_provider"]["password"]
+        idp_username = settings["idp"]["test_realm"]["username"]
+        idp_password = settings["idp"]["test_realm"]["password"]
 
-        keycloak_login_form_id = settings["identity_provider"]["login_form_id"]
+        keycloak_login_form_id = settings["idp"]["login_form_id"]
 
         # Common header for all the requests
         header = {
@@ -96,7 +97,7 @@ class Test_CT_TC_SAML_SSO_FORM_SIMPLE():
 
         soup = BeautifulSoup(response.content, 'html.parser')
 
-        form = soup.find("form",{"id": keycloak_login_form_id})
+        form = soup.find("form", {"id": keycloak_login_form_id})
 
         assert form is not None
 
@@ -118,8 +119,6 @@ class Test_CT_TC_SAML_SSO_FORM_SIMPLE():
         credentials_data["password"] = idp_password
 
         response = req.send_credentials_to_idp(s, header, idp_ip, idp_port, redirect_url, url_form, credentials_data, keycloak_cookie, method_form)
-
-        #print(response.text)
 
         assert response.status_code == 200 or response.status_code == 302 or response.status_code == 303 or response.status_code == 307
 
@@ -160,23 +159,24 @@ class Test_CT_TC_SAML_SSO_FORM_SIMPLE():
         s = Session()
 
         # Service provider settings
-        sp_ip = settings["service_provider"]["ip"]
-        sp_port = settings["service_provider"]["port"]
-        sp_scheme = settings["service_provider"]["http_scheme"]
-        sp_path = settings["service_provider"]["path"]
-        sp_message = settings["service_provider"]["logged_in_message"]
+        sp = settings["sps_saml"][0]
+        sp_ip = sp["ip"]
+        sp_port = sp["port"]
+        sp_scheme = sp["http_scheme"]
+        sp_path = sp["path"]
+        sp_message = sp["logged_in_message"]
 
         # Identity provider settings
-        idp_ip = settings["identity_provider"]["ip"]
-        idp_port = settings["identity_provider"]["port"]
-        idp_scheme = settings["identity_provider"]["http_scheme"]
-        idp_path = settings["identity_provider"]["path"]
-        idp_message = settings["identity_provider"]["logged_in_message"]
+        idp_ip = settings["idp"]["ip"]
+        idp_port = settings["idp"]["port"]
+        idp_scheme = settings["idp"]["http_scheme"]
+        idp_test_realm = settings["idp"]["test_realm"]["name"]
+        idp_path = "auth/realms/{realm}/account".format(realm=idp_test_realm)
+        idp_message = settings["idp"]["logged_in_message"]
 
-        idp_username = settings["identity_provider"]["username"]
-        idp_password = settings["identity_provider"]["password"]
+        idp_username = settings["idp"]["test_realm"]["username"]
+        idp_password = settings["idp"]["test_realm"]["password"]
 
-        keycloak_login_form_id = settings["identity_provider"]["login_form_id"]
 
         # Common header for all the requests
         header = {

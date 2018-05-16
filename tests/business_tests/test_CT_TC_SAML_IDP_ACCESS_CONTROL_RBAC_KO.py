@@ -51,26 +51,28 @@ class Test_test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_KO():
         s = Session()
 
         # Service provider settings
-        sp_ip = settings["service_provider"]["ip"]
-        sp_port = settings["service_provider"]["port"]
-        sp_scheme = settings["service_provider"]["http_scheme"]
-        sp_message = settings["service_provider"]["logged_in_message"]
-        sp_path = settings["service_provider"]["path"]
+        sp = settings["sps_saml"][0]
+        sp_ip = sp["ip"]
+        sp_port = sp["port"]
+        sp_scheme = sp["http_scheme"]
+        sp_path = sp["path"]
+        sp_message = sp["logged_in_message"]
 
         # Service provider 2 settings
-        sp2_ip = settings["service_provider2"]["ip"]
-        sp2_port = settings["service_provider2"]["port"]
-        sp2_scheme = settings["service_provider2"]["http_scheme"]
-        sp2_path = settings["service_provider2"]["path"]
-        sp2_message = settings["service_provider2"]["unauthorized_message"]
+        sp2 = settings["sps_saml"][2]
+        sp2_ip = sp2["ip"]
+        sp2_port = sp2["port"]
+        sp2_scheme = sp2["http_scheme"]
+        sp2_path = sp2["path"]
+        sp2_message = settings["idp"]["not_authorized_message"]
 
         # Identity provider settings
-        idp_ip = settings["identity_provider"]["ip"]
-        idp_port = settings["identity_provider"]["port"]
-        idp_scheme = settings["identity_provider"]["http_scheme"]
+        idp_ip = settings["idp"]["ip"]
+        idp_port = settings["idp"]["port"]
+        idp_scheme = settings["idp"]["http_scheme"]
 
-        idp_username = settings["identity_provider"]["username"]
-        idp_password = settings["identity_provider"]["password"]
+        idp_username = settings["idp"]["test_realm"]["username"]
+        idp_password = settings["idp"]["test_realm"]["password"]
 
         keycloak_login_form_id = settings["identity_provider"]["login_form_id"]
 
@@ -146,6 +148,8 @@ class Test_test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_KO():
         for input in inputs:
             saml_response[input.get('name')] = input.get('value')
 
+        print("saml response {resp}".format(resp=saml_response))
+
         (response, sp_cookie) = req.access_sp_with_token(s, header, sp_ip, sp_port, idp_scheme, idp_ip, idp_port,
                                                          method_form, url_form, saml_response, session_cookie,
                                                          keycloak_cookie_2)
@@ -178,4 +182,6 @@ class Test_test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_KO():
         assert response.status_code == 403
 
         assert re.search(sp2_message, response.text) is not None
+
+
 

@@ -50,16 +50,17 @@ class Test_test_CT_TC_SAML_IDP_LOGOUT_SIMPLE():
         s = Session()
 
         # Service provider settings
-        sp_ip = settings["service_provider"]["ip"]
-        sp_port = settings["service_provider"]["port"]
-        sp_scheme = settings["service_provider"]["http_scheme"]
-        sp_logout_path = settings["service_provider"]["logout_path"]
-        sp_message = settings["service_provider"]["logged_out_message"]
+        sp = settings["sps_saml"][0]
+        sp_ip = sp["ip"]
+        sp_port = sp["port"]
+        sp_scheme = sp["http_scheme"]
+        sp_logout_path = sp["logout_path"]
+        sp_message = sp["logged_out_message"]
 
         # Identity provider settings
-        idp_ip = settings["identity_provider"]["ip"]
-        idp_port = settings["identity_provider"]["port"]
-        idp_scheme = settings["identity_provider"]["http_scheme"]
+        idp_ip = settings["idp"]["ip"]
+        idp_port = settings["idp"]["port"]
+        idp_scheme = settings["idp"]["http_scheme"]
 
         # Common header for all the requests
         header = {
@@ -72,7 +73,7 @@ class Test_test_CT_TC_SAML_IDP_LOGOUT_SIMPLE():
         }
 
         # Perform login using the fixture login_sso_form
-        sp_cookie = login_sso_form
+        sp_cookie, keycloak_cookie = login_sso_form
 
         # User is logged in
 
@@ -92,7 +93,7 @@ class Test_test_CT_TC_SAML_IDP_LOGOUT_SIMPLE():
                 path=sp_logout_path
             ),
             headers=header_sp_logout_page,
-            cookies={**sp_cookie}
+            cookies=sp_cookie
         )
 
         prepared_request = req_get_sp_logout_page.prepare()
@@ -153,7 +154,7 @@ class Test_test_CT_TC_SAML_IDP_LOGOUT_SIMPLE():
 
         logger.debug(response.status_code)
 
-        assert  response.status_code == 200
+        assert response.status_code == 200
 
         soup = BeautifulSoup(response.content, 'html.parser')
         form = soup.body.form
@@ -177,7 +178,7 @@ class Test_test_CT_TC_SAML_IDP_LOGOUT_SIMPLE():
         req_sp_saml_response = Request(
             method=method_form,
             url="{url}".format(url=url_form),
-            data=saml_request,
+            data=saml_response,
             headers=header_idp_saml_response
         )
 

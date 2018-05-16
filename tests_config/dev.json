@@ -104,6 +104,7 @@
     "http_scheme" : "http",
     "login_form_id": "kc-form-login",
     "logged_in_message": "Keycloak Account Management",
+    "not_authorized_message": "not_authorized",
     "master_realm":{
       "name": "master",
       "username": "admin",
@@ -111,7 +112,9 @@
       "client_id": "admin-cli"
     },
     "test_realm":{
-      "name": "keycloak_testing2"
+      "name": "keycloak_testing",
+      "username": "test_keycloak",
+      "password": "toor1234*"
     }
   }
 }

@@ -45,19 +45,26 @@ def login_sso_form(settings, pytestconfig):
 
     s = Session()
 
+    # Perform login
+    if standard == "WSFED":
+        client = "sps_wsfed"
+    elif standard == "SAML":
+        client = "sps_saml"
+
     # Service provider settings
-    sp_ip = settings["service_provider"]["ip"]
-    sp_port = settings["service_provider"]["port"]
-    sp_scheme = settings["service_provider"]["http_scheme"]
-    sp_path = settings["service_provider"]["path"]
+    sp = settings[client][0]
+    sp_ip = sp["ip"]
+    sp_port = sp["port"]
+    sp_scheme = sp["http_scheme"]
+    sp_path = sp["path"]
 
     # Identity provider settings
-    idp_ip = settings["identity_provider"]["ip"]
-    idp_port = settings["identity_provider"]["port"]
-    idp_scheme = settings["identity_provider"]["http_scheme"]
+    idp_ip = settings["idp"]["ip"]
+    idp_port = settings["idp"]["port"]
+    idp_scheme = settings["idp"]["http_scheme"]
 
-    idp_username = settings["identity_provider"]["username"]
-    idp_password = settings["identity_provider"]["password"]
+    idp_username = settings["idp"]["test_realm"]["username"]
+    idp_password = settings["idp"]["test_realm"]["password"]
 
     keycloak_login_form_id = settings["identity_provider"]["login_form_id"]
 
@@ -268,8 +275,6 @@ def import_realm(settings):
 
     with open(filename, "r") as f:
         realm_representation = f.read()
-
-    #print(realm_representation)
 
     req_import_realm = Request(
         method='POST',
