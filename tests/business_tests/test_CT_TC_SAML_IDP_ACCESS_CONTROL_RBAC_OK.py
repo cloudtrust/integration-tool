@@ -26,23 +26,23 @@ logging.basicConfig(
     format='%(asctime)s %(name)s %(levelname)s %(message)s',
     datefmt='%m/%d/%Y %I:%M:%S %p'
 )
-logger = logging.getLogger('acceptance-tool.tests.business_tests.test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_KO')
+logger = logging.getLogger('acceptance-tool.tests.business_tests.test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_OK')
 logger.setLevel(logging.DEBUG)
 
 
 @pytest.mark.usefixtures('settings', scope='class')
-class Test_test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_KO():
+class Test_test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_OK():
     """
     Class to test the test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_KO use case:
-    As a resource owner, i need the solution to prevent end users switching between applications in a timeframe smaller
-    than the allowed single sign on time span, to access applications they are not entitled to access.
+    As a end user, switching between applications in a timeframe smaller than the allowed single sign on time span,
+    I need the solution to grant me access to applications whomst access I am entitled to without reauthenticating.
     """
 
-    def test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_KO_SP_initiated(self, settings):
+    def test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_OK_SP_initiated(self, settings):
         """
         Scenario: User logs in to SP1 where he has the appropriate role.
-        Same user tries to log in to SP2, SP that he is not authorized to access. He should receive an
-        error message saying he has not the authorization to access SP2.
+        Same user tries to log in to SP2, SP that he is authorized to access. He should
+        be able to access SP2 without authenticating again.
         :param settings:
         :return:
         """
@@ -58,12 +58,12 @@ class Test_test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_KO():
         sp_message = sp["logged_in_message"]
 
         # Service provider 2 settings
-        sp2 = settings["sps_saml"][2]
+        sp2 = settings["sps_saml"][1]
         sp2_ip = sp2["ip"]
         sp2_port = sp2["port"]
         sp2_scheme = sp2["http_scheme"]
         sp2_path = sp2["path"]
-        sp2_message = settings["idp"]["not_authorized_message"]
+        sp2_message = sp2["logged_in_message"]
 
         # Identity provider settings
         idp_ip = settings["idp"]["ip"]
@@ -147,6 +147,8 @@ class Test_test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_KO():
         for input in inputs:
             saml_response[input.get('name')] = input.get('value')
 
+        print("saml response {resp}".format(resp=saml_response))
+
         (response, sp_cookie) = req.access_sp_with_token(logger, s, header, sp_ip, sp_port, idp_scheme, idp_ip, idp_port,
                                                          method_form, url_form, saml_response, session_cookie,
                                                          keycloak_cookie_2)
@@ -175,17 +177,32 @@ class Test_test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_KO():
 
         response = req.redirect_to_idp(logger, s, redirect_url, header_redirect_idp, {**session_cookie2, **keycloak_cookie_2})
 
-        # Assert that the client is not authorized to access SP2
-        assert response.status_code == 403
+        soup = BeautifulSoup(response.content, 'html.parser')
+        form = soup.body.form
+
+        url_form = form.get('action')
+        inputs = form.find_all('input')
+        method_form = form.get('method')
+
+        # Get the saml response from the identity provider
+        token = {}
+        for input in inputs:
+            token[input.get('name')] = input.get('value')
+
+        (response, sp2_cookie) = req.access_sp_with_token(logger, s, header, sp2_ip, sp2_port, idp_scheme, idp_ip,
+                                                          idp_port,
+                                                          method_form, url_form, token, session_cookie,
+                                                          session_cookie2)
+
+        assert response.status_code == 200
 
         assert re.search(sp2_message, response.text) is not None
 
-
-    def test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_KO_IDP_initiated(self, settings):
+    def test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_OK_IDP_initiated(self, settings):
             """
-            Scenario: User logs in to the IDP. He then accesses SP1 where he has the appropriate role.
-            Same user tries to log in to SP2, that he is not authorized to access. He should receive an
-        error message saying he has not the authorization to access SP2.
+            Scenario: User logs in to the IDP. He theb accesses SP1 where he has the appropriate role.
+            Same user tries to log in to SP2, SP that he is authorized to access. He should
+            be able to access SP2 without authenticating again.
             :param settings:
             :return:
             """
@@ -201,12 +218,12 @@ class Test_test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_KO():
             sp_message = sp["logged_in_message"]
 
             # Service provider 2 settings
-            sp2 = settings["sps_saml"][2]
+            sp2 = settings["sps_saml"][1]
             sp2_ip = sp2["ip"]
             sp2_port = sp2["port"]
             sp2_scheme = sp2["http_scheme"]
             sp2_path = sp2["path"]
-            sp2_message = settings["idp"]["not_authorized_message"]
+            sp2_message = sp2["logged_in_message"]
 
             # Identity provider settings
             idp_ip = settings["idp"]["ip"]
@@ -304,9 +321,26 @@ class Test_test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_KO():
             response = req.redirect_to_idp(logger, s, redirect_url, header_redirect_idp,
                                            {**session_cookie2, **keycloak_cookie2})
 
-            # Assert that the client is not authorized to access SP2
-            assert response.status_code == 403
+            soup = BeautifulSoup(response.content, 'html.parser')
+            form = soup.body.form
+
+            url_form = form.get('action')
+            inputs = form.find_all('input')
+            method_form = form.get('method')
+
+            # Get the saml response from the identity provider
+            token = {}
+            for input in inputs:
+                token[input.get('name')] = input.get('value')
+
+            (response, sp2_cookie) = req.access_sp_with_token(logger, s, header, sp2_ip, sp2_port, idp_scheme, idp_ip,
+                                                              idp_port,
+                                                              method_form, url_form, token, session_cookie,
+                                                              session_cookie2)
+
+            assert response.status_code == 200
 
             assert re.search(sp2_message, response.text) is not None
+
 
 
