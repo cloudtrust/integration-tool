@@ -31,18 +31,18 @@ logger = logging.getLogger('test_create_env')
 logger.setLevel(logging.DEBUG)
 
 
-@pytest.mark.usefixtures('import_realm')
+@pytest.mark.usefixtures('export_realm')
 class Test_test_create_env():
 
-    def test_create_env(self, import_realm):
+    def test_create_env(self, export_realm):
 
-        #response = export_realm
+        response = export_realm
 
-        #assert response.status_code == 200
+        assert response.status_code == 200
 
-        response = import_realm
+        #response = import_realm
 
-        assert response.status_code == 201
+        #assert response.status_code == 201
 
         #response = delete_realm
         #
