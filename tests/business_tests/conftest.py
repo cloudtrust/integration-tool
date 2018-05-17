@@ -66,7 +66,7 @@ def login_sso_form(settings, pytestconfig):
     idp_username = settings["idp"]["test_realm"]["username"]
     idp_password = settings["idp"]["test_realm"]["password"]
 
-    keycloak_login_form_id = settings["identity_provider"]["login_form_id"]
+    keycloak_login_form_id = settings["idp"]["login_form_id"]
 
     # Common header for all the requests
     header = {

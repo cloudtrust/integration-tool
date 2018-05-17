@@ -10,6 +10,7 @@ import re
 import json
 
 import helpers.requests as req
+from http import HTTPStatus
 
 from bs4 import BeautifulSoup
 from requests import Request, Session
@@ -73,7 +74,7 @@ class Test_test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_KO():
         idp_username = settings["idp"]["test_realm"]["username"]
         idp_password = settings["idp"]["test_realm"]["password"]
 
-        keycloak_login_form_id = settings["identity_provider"]["login_form_id"]
+        keycloak_login_form_id = settings["idp"]["login_form_id"]
 
         # Common header for all the requests
         header = {
@@ -90,7 +91,7 @@ class Test_test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_KO():
         (session_cookie, response) = req.access_sp_saml(logger, s, header, sp_ip, sp_port, sp_scheme, sp_path,
                                                         idp_ip, idp_port)
 
-        assert response.status_code == 302
+        assert response.status_code == HTTPStatus.FOUND
 
         # store the cookie received from keycloak
         keycloak_cookie = response.cookies
@@ -131,7 +132,7 @@ class Test_test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_KO():
         response = req.send_credentials_to_idp(logger, s, header, idp_ip, idp_port, redirect_url, url_form, credentials_data,
                                                keycloak_cookie, method_form)
 
-        assert response.status_code == 200 or response.status_code == 302 or response.status_code == 303 or response.status_code == 307
+        assert response.status_code == HTTPStatus.OK or response.status_code == HTTPStatus.FOUND  #or response.status_code == 303 or response.status_code == 307
 
         keycloak_cookie_2 = response.cookies
 
@@ -151,7 +152,7 @@ class Test_test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_KO():
                                                          method_form, url_form, saml_response, session_cookie,
                                                          keycloak_cookie_2)
 
-        assert response.status_code == 200
+        assert response.status_code == HTTPStatus.OK
 
         # assert that we are logged in
         assert re.search(sp_message, response.text) is not None
@@ -176,7 +177,7 @@ class Test_test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_KO():
         response = req.redirect_to_idp(logger, s, redirect_url, header_redirect_idp, {**session_cookie2, **keycloak_cookie_2})
 
         # Assert that the client is not authorized to access SP2
-        assert response.status_code == 403
+        assert response.status_code == HTTPStatus.FORBIDDEN
 
         assert re.search(sp2_message, response.text) is not None
 
@@ -235,7 +236,7 @@ class Test_test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_KO():
                                                                                        idp_path, idp_username,
                                                                                        idp_password)
 
-            assert response.status_code == 200
+            assert response.status_code == HTTPStatus.OK
 
             # Assert we are logged in to IDP
             assert re.search(idp_message, response.text) is not None
@@ -247,7 +248,7 @@ class Test_test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_KO():
             # store the cookie received from keycloak
             keycloak_cookie3 = response.cookies
 
-            assert response.status_code == 302
+            assert response.status_code == HTTPStatus.FOUND
 
             redirect_url = response.headers['Location']
 
@@ -260,7 +261,7 @@ class Test_test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_KO():
             response = req.redirect_to_idp(logger, s, redirect_url, header_redirect_idp,
                                            {**keycloak_cookie3, **keycloak_cookie2})
 
-            assert response.status_code == 200
+            assert response.status_code == HTTPStatus.OK
 
             soup = BeautifulSoup(response.content, 'html.parser')
             form = soup.body.form
@@ -279,7 +280,7 @@ class Test_test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_KO():
                                                              method_form, url_form, saml_response, session_cookie,
                                                              keycloak_cookie2)
 
-            assert response.status_code == 200
+            assert response.status_code == HTTPStatus.OK
 
             assert re.search(sp_message, response.text) is not None
 
@@ -305,7 +306,7 @@ class Test_test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_KO():
                                            {**session_cookie2, **keycloak_cookie2})
 
             # Assert that the client is not authorized to access SP2
-            assert response.status_code == 403
+            assert response.status_code == HTTPStatus.FORBIDDEN
 
             assert re.search(sp2_message, response.text) is not None
 

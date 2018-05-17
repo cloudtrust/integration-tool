@@ -12,6 +12,7 @@ import helpers.requests as req
 
 from bs4 import BeautifulSoup
 from requests import Request, Session
+from http import HTTPStatus
 
 author = "Sonia Bogos"
 maintainer = "Sonia Bogos"
@@ -80,7 +81,7 @@ class Test_CT_TC_SAML_SSO_FORM_SIMPLE():
         (session_cookie, response) = req.access_sp_saml(logger, s, header, sp_ip, sp_port, sp_scheme, sp_path,
                                                                         idp_ip, idp_port)
 
-        assert response.status_code == 302
+        assert response.status_code == HTTPStatus.FOUND
 
         # store the cookie received from keycloak
         keycloak_cookie = response.cookies

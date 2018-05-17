@@ -12,6 +12,7 @@ import json
 import helpers.requests as req
 from helpers.logging import prepared_request_to_json
 from helpers.logging import log_request
+from http import HTTPStatus
 
 from bs4 import BeautifulSoup
 from requests import Request, Session
@@ -218,7 +219,7 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
 
         logger.debug(response.status_code)
 
-        assert response.status_code == 200
+        assert response.status_code == HTTPStatus.OK
 
         soup = BeautifulSoup(response.content, 'html.parser')
         form = soup.body.form
@@ -270,7 +271,7 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
 
         logger.debug(response.status_code)
 
-        assert response.status_code == 200
+        assert response.status_code == HTTPStatus.OK
 
         # Assert the logout page is displayed
         assert re.search(sp_message, response.text) is not None
@@ -304,7 +305,7 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
 
         logger.debug(response.status_code)
 
-        assert response.status_code == 200
+        assert response.status_code == HTTPStatus.OK
 
         # Response should return a form that requests a post with RelayState and SAMLRequest as input
         soup = BeautifulSoup(response.content, 'html.parser')
@@ -349,7 +350,7 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
 
         logger.debug(response.status_code)
 
-        assert response.status_code == 200
+        assert response.status_code == HTTPStatus.OK
 
         # Response should return a form that requests a post with RelayState and SAMLRequest as input
         soup = BeautifulSoup(response.content, 'html.parser')
