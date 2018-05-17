@@ -29,14 +29,7 @@ def access_sp_ws_fed(logger, s, header, sp_ip, sp_port, sp_scheme, sp_path):
 
     prepared_request = req_get_sp_page.prepare()
 
-    logger.debug(
-        json.dumps(
-            prepared_request_to_json(req_get_sp_page),
-            sort_keys=True,
-            indent=4,
-            separators=(',', ': ')
-        )
-    )
+    log_request(logger, req_get_sp_page)
 
     response = s.send(prepared_request, verify=False, allow_redirects=False)
 
@@ -67,14 +60,7 @@ def access_sp_saml(logger, s, header, sp_ip, sp_port, sp_scheme, sp_path, idp_ip
 
     prepared_request = req_get_sp_page.prepare()
 
-    logger.debug(
-        json.dumps(
-            prepared_request_to_json(req_get_sp_page),
-            sort_keys=True,
-            indent=4,
-            separators=(',', ': ')
-        )
-    )
+    log_request(logger, req_get_sp_page)
 
     response = s.send(prepared_request, verify=False)
 
@@ -111,14 +97,7 @@ def access_sp_saml(logger, s, header, sp_ip, sp_port, sp_scheme, sp_path, idp_ip
 
     prepared_request = req_idp_saml_request.prepare()
 
-    logger.debug(
-        json.dumps(
-            prepared_request_to_json(req_idp_saml_request),
-            sort_keys=True,
-            indent=4,
-            separators=(',', ': ')
-        )
-    )
+    log_request(logger, req_idp_saml_request)
 
     response = s.send(prepared_request, verify=False, allow_redirects=False)
 
@@ -145,14 +124,7 @@ def access_sp_with_token(logger, s, header, sp_ip, sp_port, idp_scheme, idp_ip, 
 
     prepared_request = req_sp_with_response.prepare()
 
-    logger.debug(
-        json.dumps(
-            prepared_request_to_json(req_sp_with_response),
-            sort_keys=True,
-            indent=4,
-            separators=(',', ': ')
-        )
-    )
+    log_request(logger, req_sp_with_response)
 
     response = s.send(prepared_request, verify=False, allow_redirects=False)
 
@@ -178,14 +150,7 @@ def access_sp_with_token(logger, s, header, sp_ip, sp_port, idp_scheme, idp_ip, 
 
     prepared_request = req_get_sp_page_final.prepare()
 
-    logger.debug(
-        json.dumps(
-            prepared_request_to_json(req_get_sp_page_final),
-            sort_keys=True,
-            indent=4,
-            separators=(',', ': ')
-        )
-    )
+    log_request(logger, req_get_sp_page_final)
 
     response = s.send(prepared_request, verify=False)
 
@@ -206,14 +171,7 @@ def redirect_to_idp(logger, s, redirect_url, header, cookie):
 
     prepared_request = req_get_keycloak.prepare()
 
-    logger.debug(
-        json.dumps(
-            prepared_request_to_json(req_get_keycloak),
-            sort_keys=True,
-            indent=4,
-            separators=(',', ': ')
-        )
-    )
+    log_request(logger, req_get_keycloak)
 
     response = s.send(prepared_request, verify=False)
 
@@ -239,14 +197,7 @@ def send_credentials_to_idp(logger, s, header, idp_ip, idp_port, redirect_url, u
     )
     prepared_request = req_login_idp.prepare()
 
-    logger.debug(
-        json.dumps(
-            prepared_request_to_json(req_login_idp),
-            sort_keys=True,
-            indent=4,
-            separators=(',', ': ')
-        )
-    )
+    log_request(logger, req_login_idp)
 
     response = s.send(prepared_request, verify=False, allow_redirects=False)
 
@@ -271,14 +222,7 @@ def login_idp(logger, s, header, idp_ip, idp_port, idp_scheme, idp_path, idp_use
 
     prepared_request = req_get_idp_page.prepare()
 
-    logger.debug(
-        json.dumps(
-            prepared_request_to_json(req_get_idp_page),
-            sort_keys=True,
-            indent=4,
-            separators=(',', ': ')
-        )
-    )
+    log_request(logger, req_get_idp_page)
 
     response = s.send(prepared_request, verify=False, allow_redirects=False)
 
@@ -296,14 +240,7 @@ def login_idp(logger, s, header, idp_ip, idp_port, idp_scheme, idp_path, idp_use
 
     prepared_request = req_idp_redirect.prepare()
 
-    logger.debug(
-        json.dumps(
-            prepared_request_to_json(req_idp_redirect),
-            sort_keys=True,
-            indent=4,
-            separators=(',', ': ')
-        )
-    )
+    log_request(logger, req_idp_redirect)
 
     response = s.send(prepared_request, verify=False, allow_redirects=False)
 
@@ -336,14 +273,7 @@ def login_idp(logger, s, header, idp_ip, idp_port, idp_scheme, idp_path, idp_use
     )
     prepared_request = req_login_idp.prepare()
 
-    logger.debug(
-        json.dumps(
-            prepared_request_to_json(req_login_idp),
-            sort_keys=True,
-            indent=4,
-            separators=(',', ': ')
-        )
-    )
+    log_request(logger, req_login_idp)
 
     response = s.send(prepared_request, verify=False, allow_redirects=False)
 
@@ -362,14 +292,7 @@ def login_idp(logger, s, header, idp_ip, idp_port, idp_scheme, idp_path, idp_use
 
     prepared_request = req_idp_redirect.prepare()
 
-    logger.debug(
-        json.dumps(
-            prepared_request_to_json(req_idp_redirect),
-            sort_keys=True,
-            indent=4,
-            separators=(',', ': ')
-        )
-    )
+    log_request(logger, req_idp_redirect)
 
     response = s.send(prepared_request, verify=False, allow_redirects=False)
 
@@ -388,14 +311,7 @@ def login_idp(logger, s, header, idp_ip, idp_port, idp_scheme, idp_path, idp_use
 
     prepared_request = req_idp_redirect.prepare()
 
-    logger.debug(
-        json.dumps(
-            prepared_request_to_json(req_idp_redirect),
-            sort_keys=True,
-            indent=4,
-            separators=(',', ': ')
-        )
-    )
+    log_request(logger, req_idp_redirect)
 
     response = s.send(prepared_request, verify=False, allow_redirects=False)
 
