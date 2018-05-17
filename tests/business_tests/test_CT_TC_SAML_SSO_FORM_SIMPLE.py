@@ -121,7 +121,7 @@ class Test_CT_TC_SAML_SSO_FORM_SIMPLE():
 
         response = req.send_credentials_to_idp(logger, s, header, idp_ip, idp_port, redirect_url, url_form, credentials_data, keycloak_cookie, method_form)
 
-        assert response.status_code == 200 or response.status_code == 302 or response.status_code == 303 or response.status_code == 307
+        assert response.status_code == HTTPStatus.OK or response.status_code == HTTPStatus.FOUND #or response.status_code == 303 or response.status_code == 307
 
         keycloak_cookie_2 = response.cookies
 
@@ -141,7 +141,7 @@ class Test_CT_TC_SAML_SSO_FORM_SIMPLE():
                                                           method_form, url_form, saml_response, session_cookie,
                                                           keycloak_cookie_2)
 
-        assert response.status_code == 200
+        assert response.status_code == HTTPStatus.OK
 
         # assert that we are logged in
         assert re.search(sp_message, response.text) is not None
@@ -192,7 +192,7 @@ class Test_CT_TC_SAML_SSO_FORM_SIMPLE():
         (oath_cookie, keycloak_cookie, keycloak_cookie2, response) = req.login_idp(logger, s, header, idp_ip, idp_port, idp_scheme,
                                                                                 idp_path, idp_username, idp_password)
 
-        assert response.status_code == 200
+        assert response.status_code == HTTPStatus.OK
 
         # Assert we are logged in
         assert re.search(idp_message, response.text) is not None
@@ -202,7 +202,7 @@ class Test_CT_TC_SAML_SSO_FORM_SIMPLE():
         # store the cookie received from keycloak
         keycloak_cookie3 = response.cookies
 
-        assert response.status_code == 302
+        assert response.status_code == HTTPStatus.FOUND
 
         redirect_url = response.headers['Location']
 
@@ -214,7 +214,7 @@ class Test_CT_TC_SAML_SSO_FORM_SIMPLE():
 
         response = req.redirect_to_idp(logger, s, redirect_url, header_redirect_idp, {**keycloak_cookie3, **keycloak_cookie2})
 
-        assert response.status_code == 200
+        assert response.status_code == HTTPStatus.OK
 
         soup = BeautifulSoup(response.content, 'html.parser')
         form = soup.body.form
@@ -232,7 +232,7 @@ class Test_CT_TC_SAML_SSO_FORM_SIMPLE():
                                                           method_form, url_form, saml_response, session_cookie,
                                                           keycloak_cookie2)
 
-        assert response.status_code == 200
+        assert response.status_code == HTTPStatus.OK
 
         assert re.search(sp_message, response.text) is not None
 
