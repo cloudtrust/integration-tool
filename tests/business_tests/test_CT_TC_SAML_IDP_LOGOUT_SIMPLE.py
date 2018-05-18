@@ -3,13 +3,19 @@
 # Copyright (C) 2018:
 #     Sonia Bogos, sonia.bogos@elca.ch
 #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+# DEALINGS IN THE SOFTWARE.
+#
 
 import pytest
 import logging
 import re
-import json
 
-from helpers.logging import prepared_request_to_json
 from helpers.logging import log_request
 
 from http import HTTPStatus
@@ -32,7 +38,7 @@ logger = logging.getLogger('acceptance-tool.tests.business_tests.test_CT_TC_SAML
 logger.setLevel(logging.DEBUG)
 
 
-@pytest.mark.usefixtures('settings', 'login_sso_form', scope='class')
+@pytest.mark.usefixtures('settings', 'login_sso_form', 'import_realm')
 class Test_test_CT_TC_SAML_IDP_LOGOUT_SIMPLE():
     """
     Class to test the CT_TC_SAML_IDP_LOGOUT_SIMPLE use case:
@@ -151,7 +157,7 @@ class Test_test_CT_TC_SAML_IDP_LOGOUT_SIMPLE():
         inputs = form.find_all('input')
         method_form = form.get('method')
 
-        # Get the saml response from the identity provider
+        # Get the token (SAML response) from the identity provider
         saml_response = {}
         for input in inputs:
             saml_response[input.get('name')] = input.get('value')

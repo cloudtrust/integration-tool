@@ -3,14 +3,21 @@
 # Copyright (C) 2018:
 #     Sonia Bogos, sonia.bogos@elca.ch
 #
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+# DEALINGS IN THE SOFTWARE.
+#
 
 import pytest
 import logging
 import re
-import json
 
 import helpers.requests as req
-from helpers.logging import prepared_request_to_json
 from helpers.logging import log_request
 from http import HTTPStatus
 
@@ -29,17 +36,16 @@ logging.basicConfig(
     format='%(asctime)s %(name)s %(levelname)s %(message)s',
     datefmt='%m/%d/%Y %I:%M:%S %p'
 )
-logger = logging.getLogger('acceptance-tool.tests.business_tests.test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC')
+logger = logging.getLogger('acceptance-tool.tests.business_tests.test_CT_TC_SAML_IDP_LOGOUT_PERIMETRIC')
 logger.setLevel(logging.DEBUG)
 
 
-@pytest.mark.usefixtures('settings', 'login_sso_form', scope='class')
-class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
+@pytest.mark.usefixtures('settings', 'login_sso_form', 'import_realm')
+class Test_test_CT_TC_SAML_IDP_LOGOUT_PERIMETRIC():
     """
-    #todo: update!!
     Class to test the test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC use case:
-    As a resource owner I need the solution to ensure that all access tokens/sessions are invalidated and not usable
-    anymore after the user has proceeded to a logout on the target application.
+    As a compliance manager I need the solution to ensure that all access tokens/sessions for all applications
+    are invalidated and not usable anymore after the user has proceeded to a logout on the target application.
     """
 
     def test_CT_TC_SAML_IDP_LOGOUT_PERIMETRIC(self, settings, login_sso_form):
@@ -66,8 +72,6 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
         sp2_port = sp2["port"]
         sp2_scheme = sp2["http_scheme"]
         sp2_path = sp2["path"]
-        sp2_logout_path = sp2["logout_path"]
-        sp2_message = sp2["logged_out_message"]
 
         # Identity provider settings
         idp_ip = settings["idp"]["ip"]
@@ -112,7 +116,7 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
         inputs = form.find_all('input')
         method_form = form.get('method')
 
-        # Get the saml response from the identity provider
+        # Get the token (SAML response) from the identity provider
         token = {}
         for input in inputs:
             token[input.get('name')] = input.get('value')
@@ -228,10 +232,10 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
         inputs = form.find_all('input')
         method_form = form.get('method')
 
-        # Get the saml response from the identity provider
-        saml_response = {}
+        # Get the token (SAML response) from the identity provider
+        token = {}
         for input in inputs:
-            saml_response[input.get('name')] = input.get('value')
+            token[input.get('name')] = input.get('value')
 
         header_idp_saml_response = {
             **header,
@@ -243,7 +247,7 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
         req_sp_saml_response = Request(
             method=method_form,
             url="{url}".format(url=url_form),
-            data=saml_request,
+            data=token,
             headers=header_idp_saml_response
         )
 
@@ -277,7 +281,7 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
         assert re.search(sp_message, response.text) is not None
 
         # Check that when the user accesses the secured page of SP1 with the old session cookie,
-        # he receives a 200 with the SAMl request
+        # he receives a 200 with the SAML request
 
         header_sp_reload_page = {
             **header,

@@ -108,7 +108,8 @@
     "test_realm":{
       "name": "keycloak_testing",
       "username": "test_keycloak",
-      "password": "toor1234*"
+      "password": "toor1234*",
+      "json_file": "tests_config/test_realm.json"
     }
   }
 }

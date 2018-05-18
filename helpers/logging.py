@@ -3,16 +3,7 @@
 
 # Copyright (C) 2018:
 #     Sebastien Pasche, sebastien.pasche@elca.ch
-#
-# Permission is hereby granted, free of charge, to any person obtaining a
-# copy of this software and associated documentation files (the "Software"),
-# to deal in the Software without restriction, including without limitation
-# the rights to use, copy, modify, merge, publish, distribute, sublicense,
-# and/or sell copies of the Software, and to permit persons to whom the
-# Software is furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
+#     Sonia Bogos , sonia.bogos@elca.ch
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -23,10 +14,6 @@
 # DEALINGS IN THE SOFTWARE.
 #
 import json
-
-author = "Sebastien Pasche"
-maintainer = "Sebastien Pasche"
-version = "0.0.1"
 
 
 def prepared_request_to_json(req):
@@ -54,6 +41,9 @@ def prepared_request_to_json(req):
 
 
 def log_request(logger, req):
+    """
+    Helper dedicated to log a request
+    """
     logger.debug(
         json.dumps(
             prepared_request_to_json(req),

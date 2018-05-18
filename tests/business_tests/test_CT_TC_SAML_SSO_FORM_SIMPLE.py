@@ -3,6 +3,14 @@
 # Copyright (C) 2018:
 #     Sonia Bogos, sonia.bogos@elca.ch
 #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+# DEALINGS IN THE SOFTWARE.
+#
 
 import pytest
 import logging
@@ -30,7 +38,7 @@ logger = logging.getLogger('acceptance-tool.tests.business_tests.test_CT_TC_SAML
 logger.setLevel(logging.DEBUG)
 
 
-@pytest.mark.usefixtures('settings', scope='class')
+@pytest.mark.usefixtures('settings', 'import_realm')
 class Test_CT_TC_SAML_SSO_FORM_SIMPLE():
     """
     Class to test the CT_TC_SAML_SSO_FORM_SIMPLE use case:
@@ -132,7 +140,7 @@ class Test_CT_TC_SAML_SSO_FORM_SIMPLE():
         inputs = form.find_all('input')
         method_form = form.get('method')
 
-        # Get the SAML response from the identity provider
+        # Get the token (SAML response) from the identity provider
         saml_response = {}
         for input in inputs:
             saml_response[input.get('name')] = input.get('value')
@@ -145,8 +153,6 @@ class Test_CT_TC_SAML_SSO_FORM_SIMPLE():
 
         # assert that we are logged in
         assert re.search(sp_message, response.text) is not None
-
-
 
     def test_CT_TC_SAML_SSO_FORM_SIMPLE_IDP_initiated(self, settings):
         """
@@ -223,13 +229,13 @@ class Test_CT_TC_SAML_SSO_FORM_SIMPLE():
         inputs = form.find_all('input')
         method_form = form.get('method')
 
-        # Get the saml response from the identity provider
-        saml_response = {}
+        # Get the token (SAML response) from the identity provider
+        token = {}
         for input in inputs:
-            saml_response[input.get('name')] = input.get('value')
+            token[input.get('name')] = input.get('value')
 
         (response, sp_cookie) = req.access_sp_with_token(logger, s, header, sp_ip, sp_port, idp_scheme, idp_ip, idp_port,
-                                                          method_form, url_form, saml_response, session_cookie,
+                                                          method_form, url_form, token, session_cookie,
                                                           keycloak_cookie2)
 
         assert response.status_code == HTTPStatus.OK

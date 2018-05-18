@@ -2,6 +2,14 @@
 # Copyright (C) 2018:
 #     Sonia Bogos, sonia.bogos@elca.ch
 #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+# DEALINGS IN THE SOFTWARE.
+#
 
 import pytest
 import json
@@ -20,6 +28,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger('conftest')
 logger.setLevel(logging.DEBUG)
+
 
 def pytest_addoption(parser):
     parser.addoption("--config-file", action="store", help="Json configuration file ", dest="config_file")
@@ -40,12 +49,17 @@ def settings(pytestconfig):
 
 @pytest.fixture()
 def login_sso_form(settings, pytestconfig):
-
+    """
+    Fixture to perform the log in
+    :param settings: settings of the IDP and SP
+    :param pytestconfig: fixture that provides the standard used for log in: WSFED or SAML
+    :return:
+    """
     standard = pytestconfig.getoption('standard')
 
     s = Session()
 
-    # Perform login
+    # Standard
     if standard == "WSFED":
         client = "sps_wsfed"
     elif standard == "SAML":
@@ -150,6 +164,11 @@ def login_sso_form(settings, pytestconfig):
 
 @pytest.fixture(scope='session')
 def export_realm(settings):
+    """
+    Fixture to perform the export of a realm to a JSON file
+    :param settings:
+    :return:
+    """
 
     # Identity provider settings
     idp_ip = settings["idp"]["ip"]
@@ -164,7 +183,7 @@ def export_realm(settings):
 
     idp_realm_test = settings["idp"]["test_realm"]["name"]
 
-    filename = "tests_config/test_realm.json"
+    filename = settings["idp"]["test_realm"]["json_file"]
 
     s = Session()
 
@@ -226,7 +245,11 @@ def export_realm(settings):
 
 @pytest.fixture(scope='session')
 def import_realm(settings):
-
+    """
+    Fixture to perform the import of a realm from a JSON file
+    :param settings:
+    :return:
+    """
     # Identity provider settings
     idp_ip = settings["idp"]["ip"]
     idp_port = settings["idp"]["port"]
@@ -238,7 +261,7 @@ def import_realm(settings):
 
     idp_realm_id = settings["idp"]["master_realm"]["name"]
 
-    filename = "tests_config/test_realm.json"
+    filename = settings["idp"]["test_realm"]["json_file"]
 
     s = Session()
 
@@ -300,7 +323,11 @@ def import_realm(settings):
 
 @pytest.fixture(scope='session')
 def delete_realm(settings):
-
+    """
+    Fixture to perform the deletion of a realm from Keycloak
+    :param settings:
+    :return:
+    """
     # Identity provider settings
     idp_ip = settings["idp"]["ip"]
     idp_port = settings["idp"]["port"]
