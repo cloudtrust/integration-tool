@@ -3,18 +3,25 @@
 # Copyright (C) 2018:
 #     Sonia Bogos, sonia.bogos@elca.ch
 #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+# DEALINGS IN THE SOFTWARE.
+#
 
 import pytest
 import logging
 import re
-import json
 
 import helpers.requests as req
-from helpers.logging import prepared_request_to_json
 from helpers.logging import log_request
 
 from bs4 import BeautifulSoup
 from requests import Request, Session
+from http import HTTPStatus
 
 author = "Sonia Bogos"
 maintainer = "Sonia Bogos"
@@ -32,12 +39,12 @@ logger = logging.getLogger('acceptance-tool.tests.business_tests.test_CT_TC_WS_F
 logger.setLevel(logging.DEBUG)
 
 
-@pytest.mark.usefixtures('settings', 'login_sso_form', scope='class')
+@pytest.mark.usefixtures('settings', 'login_sso_form', 'import_realm')
 class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
     """
     Class to test the test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC use case:
-    As a compliance manager I need the solution to ensure that all access tokens/sessions for all applications are
-    invalidated and not usable anymore after the user has proceeded to a logout on the target application.
+    As a compliance manager I need the solution to ensure that all access tokens/sessions for all applications
+    are invalidated and not usable anymore after the user has proceeded to a logout on the target application.
     """
 
     def test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC(self, settings, login_sso_form):
@@ -64,8 +71,6 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
         sp2_port = sp2["port"]
         sp2_scheme = sp2["http_scheme"]
         sp2_path = sp2["path"]
-        sp2_logout_path = sp2["logout_path"]
-        sp2_message = sp2["logged_out_message"]
 
         # Identity provider settings
         idp_ip = settings["idp"]["ip"]
@@ -110,12 +115,12 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
         inputs = form.find_all('input')
         method_form = form.get('method')
 
-        ws_fed_response = {}
+        token = {}
         for input in inputs:
-            ws_fed_response[input.get('name')] = input.get('value')
+            token[input.get('name')] = input.get('value')
 
         (response, sp2_cookie) = req.access_sp_with_token(logger, s, header, sp2_ip, sp2_port, idp_scheme, idp_ip, idp_port,
-                                                         method_form, url_form, ws_fed_response, session_cookie,
+                                                         method_form, url_form, token, session_cookie,
                                                          keycloak_cookie)
 
         # req_get_sp_login_reload_page = Request(
@@ -201,7 +206,7 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
 
         response = req.redirect_to_idp(logger, s, redirect_url, header, sp_cookie)
 
-        assert response.status_code == 200
+        assert response.status_code == HTTPStatus.OK
 
         soup = BeautifulSoup(response.content, 'html.parser')
 
@@ -218,7 +223,7 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
         (response, cookie) = req.access_sp_with_token(logger, s, header, sp_ip, sp_port, idp_scheme, idp_ip, idp_port,
                                                       method_form, url_form, token, sp_cookie, sp_cookie)
 
-        assert response.status_code == 200
+        assert response.status_code == HTTPStatus.OK
 
         assert re.search(sp_message, response.text) is not None
 
@@ -246,7 +251,7 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
         logger.debug(response.status_code)
 
         # Assert that the refresh page gives a 302 which signals that the user is logged out of SP
-        assert response.status_code == 302
+        assert response.status_code == HTTPStatus.FOUND
 
         # Check if the user is logged out from SP2: perform a refresh of the page; we expect to get a redirect
 
@@ -276,5 +281,5 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
         logger.debug(response.status_code)
 
         # Assert that the refresh page gives a 302 which signals that the user is logged out of SP2
-        assert response.status_code == 302
+        assert response.status_code == HTTPStatus.FOUND
         # the assert will fail as the single logout does not work for wsfed

@@ -3,17 +3,24 @@
 # Copyright (C) 2018:
 #     Sonia Bogos, sonia.bogos@elca.ch
 #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+# DEALINGS IN THE SOFTWARE.
+#
 
 import pytest
 import logging
 import re
-import json
 
 import helpers.requests as req
-from helpers.logging import prepared_request_to_json
 
 from bs4 import BeautifulSoup
 from requests import Request, Session
+from http import HTTPStatus
 
 author = "Sonia Bogos"
 maintainer = "Sonia Bogos"
@@ -31,19 +38,19 @@ logger = logging.getLogger('acceptance-tool.tests.business_tests.test_CT_TC_SAML
 logger.setLevel(logging.DEBUG)
 
 
-@pytest.mark.usefixtures('settings', scope='class')
+@pytest.mark.usefixtures('settings', 'import_realm')
 class Test_CT_TC_WS_FED_SSO_FORM_SIMPLE():
     """
     Class to test the CT_TC_WS_FED_SSO_FORM_SIMPLE use case:
-    As a user I can access an application from any device with the SAML token delivered by the KEYCLOAK IDP after a
-    successful form authentication.
+    As a user I can access the CRM application from any device with the WS-FED token delivered by the KEYCLOAK
+    IDP after a successful form authentication.
     """
 
     def test_CT_TC_WS_FED_SSO_FORM_SIMPLE_SP_initiated(self, settings):
         """
         Test the CT_TC_SAML_SSO_FORM_SIMPLE use case with the SP-initiated flow, i.e. the user accesses the application
         , which is a service provider (SP), that redirects him to the keycloak, the identity provider (IDP).
-        The user has to login to keycloak which will give him the SAML token. The token will give him access to the
+        The user has to login to keycloak which will give him the WSFED token. The token will give him access to the
         application.
         :param settings:
         :return:
@@ -67,7 +74,7 @@ class Test_CT_TC_WS_FED_SSO_FORM_SIMPLE():
         idp_username = settings["idp"]["test_realm"]["username"]
         idp_password = settings["idp"]["test_realm"]["password"]
 
-        keycloak_login_form_id = settings["identity_provider"]["login_form_id"]
+        keycloak_login_form_id = settings["idp"]["login_form_id"]
 
         # Common header for all the requests
         header = {
@@ -121,9 +128,7 @@ class Test_CT_TC_WS_FED_SSO_FORM_SIMPLE():
         response = req.send_credentials_to_idp(logger, s, header, idp_ip, idp_port, redirect_url, url_form, credentials_data,
                                                keycloak_cookie, method_form)
 
-        # print(response.text)
-
-        assert response.status_code == 200 or response.status_code == 302 or response.status_code == 303 or response.status_code == 307
+        assert response.status_code == HTTPStatus.OK or response.status_code == HTTPStatus.FOUND #or response.status_code == 303 or response.status_code == 307
 
         keycloak_cookie_2 = response.cookies
 
@@ -134,16 +139,16 @@ class Test_CT_TC_WS_FED_SSO_FORM_SIMPLE():
         inputs = form.find_all('input')
         method_form = form.get('method')
 
-        # Get the SAML response from the identity provider
-        ws_fed_response = {}
+        # Get the token from the identity provider
+        token = {}
         for input in inputs:
-            ws_fed_response[input.get('name')] = input.get('value')
+            token[input.get('name')] = input.get('value')
 
         (response, sp_cookie) = req.access_sp_with_token(logger, s, header, sp_ip, sp_port, idp_scheme, idp_ip, idp_port,
-                                                              method_form, url_form, ws_fed_response, session_cookie,
+                                                              method_form, url_form, token, session_cookie,
                                                               keycloak_cookie_2)
 
-        assert response.status_code == 200
+        assert response.status_code == HTTPStatus.OK
 
         # assert that we are logged in
         assert re.search(sp_message, response.text) is not None
@@ -153,7 +158,7 @@ class Test_CT_TC_WS_FED_SSO_FORM_SIMPLE():
         """
         Test the CT_TC_SAML_SSO_FORM_SIMPLE use case with the IDP-initiated flow, i.e. the user logs in keycloak,
         the identity provider (IDP), and then accesses the application, which is a service provider (SP).
-        The application redirect towards keycloak to obtain the SAML token.
+        The application redirect towards keycloak to obtain the WSFED token.
         :param settings:
         :return:
         """
@@ -193,7 +198,7 @@ class Test_CT_TC_WS_FED_SSO_FORM_SIMPLE():
                                                                                    idp_scheme, idp_path, idp_username,
                                                                                    idp_password)
 
-        assert response.status_code == 200
+        assert response.status_code == HTTPStatus.OK
 
         # Assert we are logged in
         assert re.search(idp_message, response.text) is not None
@@ -203,7 +208,7 @@ class Test_CT_TC_WS_FED_SSO_FORM_SIMPLE():
         # store the cookie received from keycloak
         session_cookie = response.cookies
 
-        assert response.status_code == 302
+        assert response.status_code == HTTPStatus.FOUND
 
         redirect_url = response.headers['Location']
 
@@ -215,7 +220,7 @@ class Test_CT_TC_WS_FED_SSO_FORM_SIMPLE():
 
         response = req.redirect_to_idp(logger, s, redirect_url, header_redirect_idp, {**keycloak_cookie2})
 
-        assert response.status_code == 200
+        assert response.status_code == HTTPStatus.OK
 
         soup = BeautifulSoup(response.content, 'html.parser')
         form = soup.body.form
@@ -225,15 +230,15 @@ class Test_CT_TC_WS_FED_SSO_FORM_SIMPLE():
         method_form = form.get('method')
 
         # Get the saml response from the identity provider
-        ws_fed_response = {}
+        token = {}
         for input in inputs:
-            ws_fed_response[input.get('name')] = input.get('value')
+            token[input.get('name')] = input.get('value')
 
         (response, sp_cookie) = req.access_sp_with_token(logger, s, header, sp_ip, sp_port, idp_scheme, idp_ip, idp_port,
-                                                              method_form, url_form, ws_fed_response, session_cookie,
+                                                              method_form, url_form, token, session_cookie,
                                                               keycloak_cookie2)
 
-        assert response.status_code == 200
+        assert response.status_code == HTTPStatus.OK
 
         assert re.search(sp_message, response.text) is not None
 

@@ -3,6 +3,14 @@
 # Copyright (C) 2018:
 #     Sonia Bogos, sonia.bogos@elca.ch
 #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+# DEALINGS IN THE SOFTWARE.
+#
 
 import pytest
 import logging
@@ -27,24 +35,23 @@ logging.basicConfig(
     format='%(asctime)s %(name)s %(levelname)s %(message)s',
     datefmt='%m/%d/%Y %I:%M:%S %p'
 )
-logger = logging.getLogger('acceptance-tool.tests.business_tests.test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_KO')
+logger = logging.getLogger('acceptance-tool.tests.business_tests.test_CT_TC_WS_FED_IDP_ACCESS_CONTROL_RBAC_KO')
 logger.setLevel(logging.DEBUG)
 
 
-@pytest.mark.usefixtures('settings', scope='class')
+@pytest.mark.usefixtures('settings', 'import_realm')
 class Test_test_CT_TC_WS_FED_IDP_ACCESS_CONTROL_RBAC_KO():
     """
-    #TODO:to update the comments
     Class to test the test_CT_TC_WS_FED_IDP_ACCESS_CONTROL_RBAC_KO use case:
-    As a resource owner, i need the solution to prevent end users switching between applications in a timeframe smaller
-    than the allowed single sign on time span, to access applications they are not entitled to access.
+    As a resource owner, I need the solution to prevent end users switching between applications in a timeframe smaller
+     than the allowed single sign on time span, to access applications they are not entitled to access.
     """
 
     def test_CT_TC_WS_FED_IDP_ACCESS_CONTROL_RBAC_KO_SP_initiated(self, settings):
         """
         Scenario: User logs in to SP1 where he has the appropriate role.
         Same user tries to log in to SP2, SP that he is not authorized to access. He should receive an
-        error message saying he has not the authorization to access SP2.
+        error message saying he has not the authorization.
         :param settings:
         :return:
         """
@@ -132,8 +139,6 @@ class Test_test_CT_TC_WS_FED_IDP_ACCESS_CONTROL_RBAC_KO():
                                                credentials_data,
                                                keycloak_cookie, method_form)
 
-        # print(response.text)
-
         assert response.status_code == HTTPStatus.OK or response.status_code == HTTPStatus.FOUND  #or response.status_code == 303 or response.status_code == 307
 
         keycloak_cookie_2 = response.cookies
@@ -145,14 +150,14 @@ class Test_test_CT_TC_WS_FED_IDP_ACCESS_CONTROL_RBAC_KO():
         inputs = form.find_all('input')
         method_form = form.get('method')
 
-        # Get the SAML response from the identity provider
-        ws_fed_response = {}
+        # Get the token from the identity provider
+        token = {}
         for input in inputs:
-            ws_fed_response[input.get('name')] = input.get('value')
+            token[input.get('name')] = input.get('value')
 
         (response, sp_cookie) = req.access_sp_with_token(logger, s, header, sp_ip, sp_port, idp_scheme, idp_ip,
                                                          idp_port,
-                                                         method_form, url_form, ws_fed_response, session_cookie,
+                                                         method_form, url_form, token, session_cookie,
                                                          keycloak_cookie_2)
 
         assert response.status_code == HTTPStatus.OK
@@ -187,7 +192,7 @@ class Test_test_CT_TC_WS_FED_IDP_ACCESS_CONTROL_RBAC_KO():
         """
         Scenario: User logs in to the IDP. He then accesses SP1 where he has the appropriate role.
         Same user tries to log in to SP2, that he is not authorized to access. He should receive an
-        error message saying he has not the authorization to access SP2.
+        error message saying he has not the authorization.
         :param settings:
         :return:
         """
@@ -268,13 +273,13 @@ class Test_test_CT_TC_WS_FED_IDP_ACCESS_CONTROL_RBAC_KO():
         method_form = form.get('method')
 
         # Get the saml response from the identity provider
-        ws_fed_response = {}
+        token = {}
         for input in inputs:
-            ws_fed_response[input.get('name')] = input.get('value')
+            token[input.get('name')] = input.get('value')
 
         (response, sp_cookie) = req.access_sp_with_token(logger, s, header, sp_ip, sp_port, idp_scheme, idp_ip,
                                                          idp_port,
-                                                         method_form, url_form, ws_fed_response, session_cookie,
+                                                         method_form, url_form, token, session_cookie,
                                                          keycloak_cookie2)
 
         assert response.status_code == HTTPStatus.OK

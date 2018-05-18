@@ -3,18 +3,25 @@
 # Copyright (C) 2018:
 #     Sonia Bogos, sonia.bogos@elca.ch
 #
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+# DEALINGS IN THE SOFTWARE.
+#
 
 import pytest
 import logging
 import re
-import json
 
 import helpers.requests as req
-from helpers.logging import prepared_request_to_json
 from helpers.logging import log_request
 
 from bs4 import BeautifulSoup
 from requests import Request, Session
+from http import HTTPStatus
 
 author = "Sonia Bogos"
 maintainer = "Sonia Bogos"
@@ -32,7 +39,7 @@ logger = logging.getLogger('acceptance-tool.tests.business_tests.test_CT_TC_SAML
 logger.setLevel(logging.DEBUG)
 
 
-@pytest.mark.usefixtures('settings', 'login_sso_form', scope='class')
+@pytest.mark.usefixtures('settings', 'login_sso_form', 'import_realm')
 class Test_test_CT_TC_WS_FED_IDP_LOGOUT_SIMPLE():
     """
     Class to test the CT_TC_WS_FED_IDP_LOGOUT_SIMPLE use case:
@@ -126,10 +133,9 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_SIMPLE():
 
         redirect_url = response.headers['Location']
 
-
         response = req.redirect_to_idp(logger, s, redirect_url, header, sp_cookie)
 
-        assert response.status_code == 200
+        assert response.status_code == HTTPStatus.OK
 
         soup = BeautifulSoup(response.content, 'html.parser')
 
@@ -138,7 +144,7 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_SIMPLE():
         method_form = form.get('method')
         inputs = form.find_all('input')
 
-        # Send ws fed response
+        # Send the token
         token = {}
         for input in inputs:
             token[input.get('name')] = input.get('value')
@@ -146,6 +152,6 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_SIMPLE():
         (response, cookie) = req.access_sp_with_token(logger, s, header, sp_ip, sp_port, idp_scheme, idp_ip, idp_port,
                                                       method_form, url_form, token, sp_cookie, sp_cookie)
 
-        assert response.status_code == 200
+        assert response.status_code == HTTPStatus.OK
 
         assert re.search(sp_message, response.text) is not None
