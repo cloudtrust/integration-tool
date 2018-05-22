@@ -109,7 +109,9 @@
       "name": "keycloak_testing",
       "username": "test_keycloak",
       "password": "toor1234*",
-      "json_file": "tests_config/test_realm.json"
+      "json_file": "tests_config/test_realm.json",
+      "attr_name": "userIP",
+      "attr_xml_elem": "saml:Attribute Name"
     }
   }
 }

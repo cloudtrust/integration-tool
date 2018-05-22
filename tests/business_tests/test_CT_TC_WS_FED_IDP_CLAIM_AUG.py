@@ -15,12 +15,14 @@
 import pytest
 import logging
 import re
+import xml.etree.ElementTree as ET
 
 import helpers.requests as req
 
 from bs4 import BeautifulSoup
 from requests import Request, Session
 from http import HTTPStatus
+
 
 author = "Sonia Bogos"
 maintainer = "Sonia Bogos"
@@ -34,20 +36,21 @@ logging.basicConfig(
     format='%(asctime)s %(name)s %(levelname)s %(message)s',
     datefmt='%m/%d/%Y %I:%M:%S %p'
 )
-logger = logging.getLogger('acceptance-tool.tests.business_tests.test_CT_TC_WS_FED_SSO_FORM_SIMPLE')
+logger = logging.getLogger('acceptance-tool.tests.business_tests.test_CT_TC_WS_FED_IDP_CLAIM_AUG')
 logger.setLevel(logging.DEBUG)
 
 
 @pytest.mark.usefixtures('settings', 'import_realm')
-class Test_CT_TC_WS_FED_SSO_FORM_SIMPLE():
+class Test_CT_TC_WS_FED_IDP_CLAIM_AUG():
     """
-    Class to test the CT_TC_WS_FED_SSO_FORM_SIMPLE use case:
-    As a user I can access the CRM application from any device with the WS-FED token delivered by the KEYCLOAK
-    IDP after a successful form authentication.
+    Class to test the test_CT_TC_WS_FED_IDP_CLAIM_AUG use case:
+    As a user I need CloudTrust to add additional information to my access token when I access applications,
+    e.g., the network location at the time of authentication.
     """
 
-    def test_CT_TC_WS_FED_SSO_FORM_SIMPLE_SP_initiated(self, settings):
+    def test_CT_TC_WS_FED_IDP_CLAIM_AUG_SP_initiated(self, settings):
         """
+        ##TODO:update the comments
         Test the CT_TC_SAML_SSO_FORM_SIMPLE use case with the SP-initiated flow, i.e. the user accesses the application
         , which is a service provider (SP), that redirects him to the keycloak, the identity provider (IDP).
         The user has to login to keycloak which will give him the WSFED token. The token will give him access to the
@@ -75,6 +78,8 @@ class Test_CT_TC_WS_FED_SSO_FORM_SIMPLE():
         idp_password = settings["idp"]["test_realm"]["password"]
 
         keycloak_login_form_id = settings["idp"]["login_form_id"]
+        idp_attr_name =  settings["idp"]["test_realm"]["attr_name"]
+        idp_attr_tag = settings["idp"]["test_realm"]["attr_xml_elem"]
 
         # Common header for all the requests
         header = {
@@ -144,6 +149,10 @@ class Test_CT_TC_WS_FED_SSO_FORM_SIMPLE():
         for input in inputs:
             token[input.get('name')] = input.get('value')
 
+        val = idp_attr_tag+"=\"{v}\"".format(v=idp_attr_name)
+        # assert that the IDP added the location attribute in the token
+        assert re.search(val, token['wresult']) is not None
+
         (response, sp_cookie) = req.access_sp_with_token(logger, s, header, sp_ip, sp_port, idp_scheme, idp_ip, idp_port,
                                                               method_form, url_form, token, session_cookie,
                                                               keycloak_cookie_2)
@@ -152,6 +161,7 @@ class Test_CT_TC_WS_FED_SSO_FORM_SIMPLE():
 
         # assert that we are logged in
         assert re.search(sp_message, response.text) is not None
+
 
     def test_CT_TC_WS_FED_SSO_FORM_SIMPLE_IDP_initiated(self, settings):
         """
@@ -182,6 +192,8 @@ class Test_CT_TC_WS_FED_SSO_FORM_SIMPLE():
 
         idp_username = settings["idp"]["test_realm"]["username"]
         idp_password = settings["idp"]["test_realm"]["password"]
+        idp_attr_name = settings["idp"]["test_realm"]["attr_name"]
+        idp_attr_tag = settings["idp"]["test_realm"]["attr_xml_elem"]
 
         # Common header for all the requests
         header = {
@@ -232,6 +244,10 @@ class Test_CT_TC_WS_FED_SSO_FORM_SIMPLE():
         token = {}
         for input in inputs:
             token[input.get('name')] = input.get('value')
+
+        val = idp_attr_tag + "=\"{v}\"".format(v=idp_attr_name)
+        # assert that the IDP added the location attribute in the token
+        assert re.search(val, token['wresult']) is not None
 
         (response, sp_cookie) = req.access_sp_with_token(logger, s, header, sp_ip, sp_port, idp_scheme, idp_ip, idp_port,
                                                               method_form, url_form, token, session_cookie,
