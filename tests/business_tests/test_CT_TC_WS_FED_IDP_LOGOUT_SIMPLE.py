@@ -149,8 +149,8 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_SIMPLE():
         for input in inputs:
             token[input.get('name')] = input.get('value')
 
-        (response, cookie) = req.access_sp_with_token(logger, s, header, sp_ip, sp_port, idp_scheme, idp_ip, idp_port,
-                                                      method_form, url_form, token, sp_cookie, sp_cookie)
+        (response, cookie) = req.access_sp_with_token(logger, s, header, sp_ip, sp_port, sp_scheme, idp_scheme, idp_ip, idp_port,
+                                                      method_form, url_form, token, sp_cookie, sp_cookie, )
 
         assert response.status_code == HTTPStatus.OK
 

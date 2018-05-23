@@ -2,6 +2,7 @@
   "sps_saml": [
     {
       "name": "sp_saml1",
+      "sso_url_name": "sp_saml1",
       "protocol": "saml",
       "ip": "127.0.0.1",
       "port": "9000",
@@ -94,7 +95,6 @@
   "idp":{
     "ip" : "127.0.0.1",
     "port" : "8080",
-    "path": "auth/realms/keycloak_testing/account",
     "http_scheme" : "http",
     "login_form_id": "kc-form-login",
     "logged_in_message": "Keycloak Account Management",
@@ -113,5 +113,28 @@
       "attr_name": "userIP",
       "attr_xml_elem": "saml:Attribute Name"
     }
+  },
+  "idp_external":{
+    "ip" : "127.0.0.1",
+    "port" : "8081",
+    "http_scheme" : "http",
+    "login_form_id": "kc-form-login",
+    "logged_in_message": "Keycloak Account Management",
+    "not_authorized_message": "not_authorized",
+    "master_realm":{
+      "name": "master",
+      "username": "admin",
+      "password": "admin",
+      "client_id": "admin-cli"
+    },
+    "test_realm":{
+      "name": "keycloak_testing_external",
+      "username": "test_keycloak_external",
+      "password": "admin",
+      "json_file": "tests_config/test_realm_external.json",
+      "attr_name": "userIP",
+      "attr_xml_elem": "saml:Attribute Name"
+    }
+
   }
 }

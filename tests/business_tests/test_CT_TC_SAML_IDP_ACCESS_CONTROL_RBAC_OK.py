@@ -156,9 +156,9 @@ class Test_test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_OK():
         for input in inputs:
             token[input.get('name')] = input.get('value')
 
-        (response, sp_cookie) = req.access_sp_with_token(logger, s, header, sp_ip, sp_port, idp_scheme, idp_ip, idp_port,
-                                                         method_form, url_form, token, session_cookie,
-                                                         keycloak_cookie_2)
+        (response, sp_cookie) = req.access_sp_with_token(logger, s, header, sp_ip, sp_port, idp_scheme, idp_ip,
+                                                         idp_port, method_form, url_form, token, session_cookie,
+                                                         keycloak_cookie_2, )
 
         assert response.status_code == HTTPStatus.OK
 
@@ -196,10 +196,9 @@ class Test_test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_OK():
         for input in inputs:
             token[input.get('name')] = input.get('value')
 
-        (response, sp2_cookie) = req.access_sp_with_token(logger, s, header, sp2_ip, sp2_port, idp_scheme, idp_ip,
-                                                          idp_port,
-                                                          method_form, url_form, token, session_cookie,
-                                                          session_cookie2)
+        (response, sp2_cookie) = req.access_sp_with_token(logger, s, header, sp2_ip, sp2_port, sp2_scheme, idp_scheme, idp_ip,
+                                                          idp_port, method_form, url_form, token, session_cookie,
+                                                          session_cookie2, )
 
         assert response.status_code == HTTPStatus.OK
 
@@ -298,10 +297,9 @@ class Test_test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_OK():
         for input in inputs:
             token[input.get('name')] = input.get('value')
 
-        (response, sp_cookie) = req.access_sp_with_token(logger, s, header, sp_ip, sp_port, idp_scheme, idp_ip,
-                                                         idp_port,
-                                                         method_form, url_form, token, session_cookie,
-                                                         keycloak_cookie2)
+        (response, sp_cookie) = req.access_sp_with_token(logger, s, header, sp_ip, sp_port, sp_scheme, idp_scheme, idp_ip,
+                                                         idp_port, method_form, url_form, token, session_cookie,
+                                                         keycloak_cookie2, )
 
         assert response.status_code == HTTPStatus.OK
 
@@ -340,10 +338,9 @@ class Test_test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_OK():
         for input in inputs:
             token[input.get('name')] = input.get('value')
 
-        (response, sp2_cookie) = req.access_sp_with_token(logger, s, header, sp2_ip, sp2_port, idp_scheme, idp_ip,
-                                                          idp_port,
-                                                          method_form, url_form, token, session_cookie,
-                                                          session_cookie2)
+        (response, sp2_cookie) = req.access_sp_with_token(logger, s, header, sp2_ip, sp2_port, sp2_scheme, idp_scheme, idp_ip,
+                                                          idp_port, method_form, url_form, token, session_cookie,
+                                                          session_cookie2, )
 
         assert response.status_code == HTTPStatus.OK
 

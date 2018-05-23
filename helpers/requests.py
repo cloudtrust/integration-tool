@@ -144,7 +144,7 @@ def access_sp_saml(logger, s, header, sp_ip, sp_port, sp_scheme, sp_path, idp_ip
     return session_cookie, response
 
 
-def access_sp_with_token(logger, s, header, sp_ip, sp_port, idp_scheme, idp_ip, idp_port, method, url, token, session_cookie, keycloak_cookie):
+def access_sp_with_token(logger, s, header, sp_ip, sp_port, sp_scheme, idp_scheme, idp_ip, idp_port, method, url, token, session_cookie, keycloak_cookie):
     """
     Helper dedicated to access the service provider endpoint with the token obtained from the identity provider.
     Requests done in this method are dependent of the functionality of the servide provider.
@@ -190,6 +190,9 @@ def access_sp_with_token(logger, s, header, sp_ip, sp_port, idp_scheme, idp_ip, 
     sp_cookie = response.cookies
 
     url_sp = response.headers['Location']
+
+    if url_sp == "/":
+        url_sp = "{scheme}://{ip}:{port}".format(ip=sp_ip, port=sp_port, scheme=sp_scheme)
 
     header_login_sp = {
         **header,

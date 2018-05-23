@@ -121,9 +121,9 @@ class Test_test_CT_TC_SAML_IDP_LOGOUT_PERIMETRIC():
         for input in inputs:
             token[input.get('name')] = input.get('value')
 
-        (response, sp2_cookie) = req.access_sp_with_token(logger, s, header, sp2_ip, sp2_port, idp_scheme, idp_ip, idp_port,
-                                                         method_form, url_form, token, session_cookie,
-                                                         session_cookie2)
+        (response, sp2_cookie) = req.access_sp_with_token(logger, s, header, sp2_ip, sp2_port, sp2_scheme, idp_scheme, idp_ip,
+                                                          idp_port, method_form, url_form, token, session_cookie,
+                                                          session_cookie2, )
 
         # req_get_sp_login_reload_page = Request(
         #     method='GET',
