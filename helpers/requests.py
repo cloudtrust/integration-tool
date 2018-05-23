@@ -189,6 +189,9 @@ def access_sp_with_token(logger, s, header, sp_ip, sp_port, sp_scheme, idp_schem
 
     sp_cookie = response.cookies
 
+    print("********************")
+    print(response.headers)
+
     url_sp = response.headers['Location']
 
     if url_sp == "/":
@@ -451,4 +454,15 @@ def get_access_token(logger, s, data, idp_scheme, idp_port, idp_ip, realm_id):
     return access_token
 
 
+def get_header():
+
+    header = {
+        'Accept': "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        'Accept-Encoding': "gzip, deflate",
+        'Accept-Language': "en-US,en;q=0.5",
+        'User-Agent': "Mozilla/5.0 (X11; Fedora; Linux x86_64; rv:59.0) Gecko/20100101 Firefox/59.0",
+        'Connection': "keep-alive",
+        'Upgrade-Insecure-Requests': "1",
+    }
+    return header
 

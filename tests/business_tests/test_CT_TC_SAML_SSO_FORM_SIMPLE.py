@@ -291,7 +291,7 @@ class Test_CT_TC_SAML_SSO_FORM_SIMPLE():
         # Idp endpoint for client
         url_endpoint= "{scheme}://{ip}:{port}/{path}".format(scheme=idp_scheme, ip=idp_ip, port=idp_port, path=idp_login_endpoint)
 
-        req_access_idp_endpoint= Request(
+        req_access_idp_endpoint = Request(
             method='GET',
             url=url_endpoint,
             headers=header,

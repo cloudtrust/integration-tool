@@ -44,6 +44,18 @@
       "logout_path": "singleLogout",
       "logged_in_message": "Login successful, welcome",
       "logged_out_message": "You have logged out"
+    },
+    {
+      "name": "sp_saml5",
+      "sso_url_name": "sp_saml1_external",
+      "protocol": "saml",
+      "ip": "127.0.0.1",
+      "port": "9010",
+      "http_scheme": "http",
+      "path": "tokenInformation",
+      "logout_path": "singleLogout",
+      "logged_in_message": "Login successful, welcome",
+      "logged_out_message": "You have logged out"
     }
   ],
   "sps_wsfed": [
@@ -135,6 +147,5 @@
       "attr_name": "userIP",
       "attr_xml_elem": "saml:Attribute Name"
     }
-
   }
 }
