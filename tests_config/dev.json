@@ -46,7 +46,20 @@
       "logged_out_message": "You have logged out"
     },
     {
+      "_comment": "This SAML client has the Force Binding set to OFF and the Fron Channel Logout set to OFF (while the rest of the client have these options to ON, by default)",
       "name": "sp_saml5",
+      "sso_url_name": "sp_saml5",
+      "protocol": "saml",
+      "ip": "127.0.0.1",
+      "port": "9004",
+      "http_scheme": "http",
+      "path": "tokenInformation",
+      "logout_path": "singleLogout",
+      "logged_in_message": "Login successful, welcome",
+      "logged_out_message": "You have logged out"
+    },
+    {
+      "name": "sp_saml1_external",
       "sso_url_name": "sp_saml1_external",
       "protocol": "saml",
       "ip": "127.0.0.1",
@@ -57,6 +70,7 @@
       "logged_in_message": "Login successful, welcome",
       "logged_out_message": "You have logged out"
     }
+
   ],
   "sps_wsfed": [
     {

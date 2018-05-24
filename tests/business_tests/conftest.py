@@ -239,6 +239,11 @@ def export_realm(settings):
 
     logger.debug(response.status_code)
 
+    print("*******************************")
+    print(response.headers)
+    print(response.text)
+
+
     with open(filename, "w") as f:
         f.write(response.text)
 
@@ -252,6 +257,7 @@ def import_realm(settings):
     :param settings:
     :return:
     """
+
     # Identity provider settings
     idp_ip = settings["idp"]["ip"]
     idp_port = settings["idp"]["port"]
