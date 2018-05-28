@@ -116,6 +116,18 @@
       "logout_path": "singleLogout",
       "logged_in_message": "Login successful, welcome",
       "logged_out_message": "You have logged out"
+    },
+    {
+      "_comment": "This WSFED client has the SAML Assertion Token Format set to SAML 1.1 and the Front Channel Logout set to ON (while the rest of the clients have these options set to SAML 2.0 and OFF respectively, by default)",
+      "name": "sp_wsfed5",
+      "protocol": "wsfed",
+      "ip": "127.0.0.1",
+      "port": "7004",
+      "http_scheme": "http",
+      "path": "tokenInformation",
+      "logout_path": "singleLogout",
+      "logged_in_message": "Login successful, welcome",
+      "logged_out_message": "You have logged out"
     }
   ],
   "idp":{

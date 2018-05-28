@@ -47,7 +47,7 @@ class Test_CT_TC_SAML_SSO_FORM_SIMPLE():
     successful form authentication.
     """
 
-    # This tests check if the login succeeds for two clients:
+    # These tests check if the login succeeds for two clients:
     # one where the Force Post Binding is ON and Front Channel Logout is ON (as set by default)
     # one where the Force Post Binding is OFF and Front Channel Logout is OFF
 
