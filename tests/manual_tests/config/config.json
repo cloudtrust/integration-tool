@@ -1,0 +1,9 @@
+{
+  "ip": "127.0.0.1",
+  "port": "8080",
+  "http_scheme": "http",
+  "username": "admin",
+  "password": "admin",
+  "client_id": "admin-cli",
+  "json_file": "./config/test_realm.json"
+}
