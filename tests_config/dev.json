@@ -149,6 +149,7 @@
       "password": "toor1234*",
       "json_file": "tests_config/test_realm.json",
       "attr_name": "userIP",
+      "external_attr_name": "externalClaim",
       "attr_xml_elem": "saml:Attribute Name"
     }
   },
@@ -171,6 +172,7 @@
       "password": "admin",
       "json_file": "tests_config/test_realm_external.json",
       "attr_name": "userIP",
+      "external_attr_name": "externalClaim",
       "attr_xml_elem": "saml:Attribute Name"
     }
   }

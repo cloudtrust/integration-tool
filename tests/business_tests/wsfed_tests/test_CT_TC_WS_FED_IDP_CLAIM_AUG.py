@@ -80,6 +80,7 @@ class Test_CT_TC_WS_FED_IDP_CLAIM_AUG():
         keycloak_login_form_id = settings["idp"]["login_form_id"]
         idp_attr_name =  settings["idp"]["test_realm"]["attr_name"]
         idp_attr_tag = settings["idp"]["test_realm"]["attr_xml_elem"]
+        idp_attr_name_external = settings["idp"]["test_realm"]["external_attr_name"]
 
         # Common header for all the requests
         header = {
@@ -153,6 +154,11 @@ class Test_CT_TC_WS_FED_IDP_CLAIM_AUG():
         # assert that the IDP added the location attribute in the token
         assert re.search(val, token['wresult']) is not None
 
+        # assert that the external claim is also in the token
+        val = idp_attr_tag + "=\"{v}\"".format(v=idp_attr_name_external)
+        assert re.search(val, token['wresult']) is not None
+
+
         (response, sp_cookie) = req.access_sp_with_token(logger, s, header, sp_ip, sp_port, sp_scheme, idp_scheme, idp_ip,
                                                          idp_port, method_form, url_form, token, session_cookie,
                                                          keycloak_cookie_2, )
@@ -194,6 +200,7 @@ class Test_CT_TC_WS_FED_IDP_CLAIM_AUG():
         idp_password = settings["idp"]["test_realm"]["password"]
         idp_attr_name = settings["idp"]["test_realm"]["attr_name"]
         idp_attr_tag = settings["idp"]["test_realm"]["attr_xml_elem"]
+        idp_attr_name_external = settings["idp"]["test_realm"]["external_attr_name"]
 
         # Common header for all the requests
         header = {
@@ -247,6 +254,10 @@ class Test_CT_TC_WS_FED_IDP_CLAIM_AUG():
 
         val = idp_attr_tag + "=\"{v}\"".format(v=idp_attr_name)
         # assert that the IDP added the location attribute in the token
+        assert re.search(val, token['wresult']) is not None
+
+        # assert that the external claim is also in the token
+        val = idp_attr_tag + "=\"{v}\"".format(v=idp_attr_name_external)
         assert re.search(val, token['wresult']) is not None
 
         (response, sp_cookie) = req.access_sp_with_token(logger, s, header, sp_ip, sp_port, sp_scheme, idp_scheme, idp_ip,
