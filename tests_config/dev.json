@@ -128,6 +128,17 @@
       "logout_path": "singleLogout",
       "logged_in_message": "Login successful, welcome",
       "logged_out_message": "You have logged out"
+    },
+    {
+      "name": "sp_wsfed1_external",
+      "protocol": "wsfed",
+      "ip": "127.0.0.1",
+      "port": "7010",
+      "http_scheme": "http",
+      "path": "tokenInformation",
+      "logout_path": "singleLogout",
+      "logged_in_message": "Login successful, welcome",
+      "logged_out_message": "You have logged out"
     }
   ],
   "idp":{

@@ -65,7 +65,7 @@ class Test_CT_TC_SAML_SSO_BROKER_SIMPLE():
         s = Session()
 
         # Service provider settings
-        sp = settings["sps_saml"][4]
+        sp = settings["sps_saml"][5]
         sp_ip = sp["ip"]
         sp_port = sp["port"]
         sp_scheme = sp["http_scheme"]
@@ -265,7 +265,7 @@ class Test_CT_TC_SAML_SSO_BROKER_SIMPLE():
         s = Session()
 
         # Service provider settings
-        sp = settings["sps_saml"][4]
+        sp = settings["sps_saml"][5]
         sp_ip = sp["ip"]
         sp_port = sp["port"]
         sp_scheme = sp["http_scheme"]
@@ -343,179 +343,3 @@ class Test_CT_TC_SAML_SSO_BROKER_SIMPLE():
         assert response.status_code == HTTPStatus.OK
 
         assert re.search(sp_message, response.text) is not None
-    #
-    # def test_CT_TC_SAML_BROKER_SIMPLE_IDP_initiated_keycloak_endpoint(self, settings):
-    #     """
-    #     Test the CT_TC_SAML_SSO_FORM_SIMPLE use case with the IDP-initiated flow, where we set up an endpoint
-    #     on Keycloak with IDP Initiated SSO URL Name.
-    #     Thus, the user accesses
-    #     http[s]://host:port/auth/realms/{RealmName}/protocol/saml/clients/{IDP Initiated SSO URL Name}
-    #     to authenticate to Keycloak and obtain the token (SAML response) and gets redirected
-    #     to the SP that he can access
-    #     :param settings:
-    #     :return:
-    #     """
-    #
-    #     s = Session()
-    #
-    #     # Service provider settings
-    #     sp = settings["sps_saml"][4]
-    #     sp_ip = sp["ip"]
-    #     sp_port = sp["port"]
-    #     sp_scheme = sp["http_scheme"]
-    #     sp_path = sp["path"]
-    #     sp_message = sp["logged_in_message"]
-    #     sp_sso_url_name = sp["sso_url_name"]
-    #
-    #     # Identity provider settings
-    #     idp_ip = settings["idp"]["ip"]
-    #     idp_port = settings["idp"]["port"]
-    #     idp_scheme = settings["idp"]["http_scheme"]
-    #     idp_test_realm = settings["idp"]["test_realm"]["name"]
-    #     idp_login_endpoint = "auth/realms/{realm}/protocol/saml/clients/{name}".format(realm=idp_test_realm, name=sp_sso_url_name)
-    #
-    #     idp_username = settings["idp"]["test_realm"]["username"]
-    #     idp_password = settings["idp"]["test_realm"]["password"]
-    #
-    #     idp2_ip = settings["idp_external"]["ip"]
-    #     idp2_port = settings["idp_external"]["port"]
-    #     idp2_scheme = settings["idp_external"]["http_scheme"]
-    #
-    #     keycloak_login_form_id = settings["idp"]["login_form_id"]
-    #
-    #     # Common header for all the requests
-    #     header = {
-    #         'Accept': "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-    #         'Accept-Encoding': "gzip, deflate",
-    #         'Accept-Language': "en-US,en;q=0.5",
-    #         'User-Agent': "Mozilla/5.0 (X11; Fedora; Linux x86_64; rv:59.0) Gecko/20100101 Firefox/59.0",
-    #         'Connection': "keep-alive",
-    #         'Upgrade-Insecure-Requests': "1",
-    #     }
-    #
-    #     # Idp endpoint for client
-    #     url_endpoint = "{scheme}://{ip}:{port}/{path}".format(scheme=idp_scheme, ip=idp_ip, port=idp_port, path=idp_login_endpoint)
-    #
-    #     req_access_idp_endpoint = Request(
-    #         method='GET',
-    #         url=url_endpoint,
-    #         headers=header,
-    #     )
-    #
-    #     prepared_request = req_access_idp_endpoint.prepare()
-    #
-    #     log_request(logger, req_access_idp_endpoint)
-    #
-    #     response = s.send(prepared_request, verify=False, allow_redirects=False)
-    #
-    #     logger.debug(response.status_code)
-    #
-    #     keycloak_cookie = response.cookies
-    #
-    #     print(response.text)
-    #
-    #     # In the login page we can choose to login with the external IDP
-    #     soup = BeautifulSoup(response.content, 'html.parser')
-    #
-    #     div = soup.find("div", {"id": "kc-social-providers"})
-    #
-    #     assert div is not None
-    #
-    #     external_idp_url = "{scheme}://{ip}:{port}".format(scheme=idp_scheme, ip=idp_ip, port=idp_port) + div.li.a[
-    #         'href']
-    #
-    #     # Select to login with the external IDP
-    #     req_choose_external_idp = Request(
-    #         method='GET',
-    #         url="{url}".format(url=external_idp_url),
-    #         headers=header,
-    #         cookies=keycloak_cookie
-    #     )
-    #
-    #     prepared_request = req_choose_external_idp.prepare()
-    #
-    #     log_request(logger, req_choose_external_idp)
-    #
-    #     response = s.send(prepared_request, verify=False, allow_redirects=False)
-    #
-    #     logger.debug(response.status_code)
-    #
-    #     print(response.text)
-
-        # form = soup.find("form", {"id": keycloak_login_form_id})
-        #
-        # assert form is not None
-        #
-        # url_form = form.get('action')
-        # method_form = form.get('method')
-        #
-        # inputs = form.find_all('input')
-        #
-        # input_name = []
-        # for input in inputs:
-        #     input_name.append(input.get('name'))
-        #
-        # assert "username" in input_name
-        # assert "password" in input_name
-        #
-        # # Provide the credentials
-        # credentials_data = {}
-        # credentials_data["username"] = idp_username
-        # credentials_data["password"] = idp_password
-        #
-        # response = req.send_credentials_to_idp(logger, s, header, idp_ip, idp_port, url_endpoint, url_form,
-        #                                        credentials_data, keycloak_cookie, method_form)
-        #
-        # assert response.status_code == HTTPStatus.OK or response.status_code == HTTPStatus.FOUND
-        #
-        # keycloak_cookie_2 = response.cookies
-        #
-        # soup = BeautifulSoup(response.content, 'html.parser')
-        # form = soup.body.form
-        #
-        # url_form = form.get('action')
-        # inputs = form.find_all('input')
-        # method_form = form.get('method')
-        #
-        # # Get the token (SAML response) from the identity provider
-        # token = {}
-        # for input in inputs:
-        #     token[input.get('name')] = input.get('value')
-        #
-        # (response, sp_cookie) = req.access_sp_with_token(logger, s, header, sp_ip, sp_port, sp_scheme, idp_scheme,
-        #                                                  idp_ip, idp_port, method_form, url_form, token,
-        #                                                  keycloak_cookie_2, keycloak_cookie_2)
-        #
-        # assert response.status_code == HTTPStatus.OK
-        #
-        # #  Access the secure page of the SP
-        # header_sp_page = {
-        #     **header,
-        #     'Host': "{ip}:{port}".format(ip=sp_ip, port=sp_port),
-        #     'Referer': "{ip}:{port}".format(ip=sp_ip, port=sp_port)
-        # }
-        #
-        # req_get_sp_page = Request(
-        #     method='GET',
-        #     url="{scheme}://{ip}:{port}/{path}".format(
-        #         scheme=sp_scheme,
-        #         port=sp_port,
-        #         ip=sp_ip,
-        #         path=sp_path
-        #     ),
-        #     headers=header_sp_page,
-        #     cookies=sp_cookie
-        # )
-        #
-        # prepared_request = req_get_sp_page.prepare()
-        #
-        # log_request(logger, req_get_sp_page)
-        #
-        # response = s.send(prepared_request, verify=False)
-        #
-        # logger.debug(response.status_code)
-        #
-        # assert response.status_code == HTTPStatus.OK
-        #
-        # assert re.search(sp_message, response.text) is not None
-
