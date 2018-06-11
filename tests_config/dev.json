@@ -69,8 +69,31 @@
       "logout_path": "singleLogout",
       "logged_in_message": "Login successful, welcome",
       "logged_out_message": "You have logged out"
+    },
+    {
+      "name": "sp_saml2_external",
+      "sso_url_name": "sp_saml2_external",
+      "protocol": "saml",
+      "ip": "127.0.0.1",
+      "port": "9011",
+      "http_scheme": "http",
+      "path": "tokenInformation",
+      "logout_path": "singleLogout",
+      "logged_in_message": "Login successful, welcome",
+      "logged_out_message": "You have logged out"
+    },
+    {
+      "name": "sp_saml3_external",
+      "sso_url_name": "sp_saml3_external",
+      "protocol": "saml",
+      "ip": "127.0.0.1",
+      "port": "9012",
+      "http_scheme": "http",
+      "path": "tokenInformation",
+      "logout_path": "singleLogout",
+      "logged_in_message": "Login successful, welcome",
+      "logged_out_message": "You have logged out"
     }
-
   ],
   "sps_wsfed": [
     {
@@ -148,6 +171,8 @@
     "login_form_id": "kc-form-login",
     "logged_in_message": "Keycloak Account Management",
     "not_authorized_message": "not_authorized",
+    "saml_broker": "cloudtrust_saml",
+    "wsfed_broker": "cloudtrust",
     "master_realm":{
       "name": "master",
       "username": "admin",

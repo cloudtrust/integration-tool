@@ -340,7 +340,7 @@ class Test_test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_OK():
 
         (response, sp2_cookie) = req.access_sp_with_token(logger, s, header, sp2_ip, sp2_port, sp2_scheme, idp_scheme, idp_ip,
                                                           idp_port, method_form, url_form, token, session_cookie,
-                                                          session_cookie2, )
+                                                          session_cookie2)
 
         assert response.status_code == HTTPStatus.OK
 

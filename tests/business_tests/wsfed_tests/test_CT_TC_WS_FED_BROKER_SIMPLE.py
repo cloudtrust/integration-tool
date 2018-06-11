@@ -41,7 +41,7 @@ logger = logging.getLogger('acceptance-tool.tests.business_tests.test_CT_TC_SAML
 logger.setLevel(logging.DEBUG)
 
 
-@pytest.mark.usefixtures('settings', 'import_realm')
+@pytest.mark.usefixtures('settings', 'import_realm', 'import_realm_external')
 class Test_CT_TC_SAML_SSO_BROKER_SIMPLE():
     """
     Class to test the CT_TC_SAML_SSO_BROKER_SIMPLE use case:

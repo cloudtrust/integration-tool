@@ -416,7 +416,7 @@ def login_idp(logger, s, header, idp_ip, idp_port, idp_scheme, idp_path, idp_use
     return oath_cookie, keycloak_cookie, keycloak_cookie2, response
 
 
-def login_external_idp(logger, s, header, idp_ip, idp_port, idp_scheme, idp_path, idp_username, idp_password, idp2_ip, idp2_port):
+def login_external_idp(logger, s, header, idp_ip, idp_port, idp_scheme, idp_path, idp_username, idp_password, idp2_ip, idp2_port, idp_broker):
 
     # Request access to the broker IDP
     header_idp_page = {
@@ -465,8 +465,14 @@ def login_external_idp(logger, s, header, idp_ip, idp_port, idp_scheme, idp_path
 
     assert div is not None
 
-    external_idp_url = "{scheme}://{ip}:{port}".format(scheme=idp_scheme, ip=idp_ip, port=idp_port) + div.li.a[
-        'href']
+    # we can have several idp external; choose the one needed for the test
+    all_li = div.find_all('li')
+    for li in all_li:
+        if li.span.text == idp_broker:
+            external_idp_url = "{scheme}://{ip}:{port}".format(scheme=idp_scheme, ip=idp_ip, port=idp_port) + li.a[
+                'href']
+
+    assert external_idp_url is not None
 
     # Select to login with the external IDP
     req_choose_external_idp = Request(
@@ -506,7 +512,7 @@ def login_external_idp(logger, s, header, idp_ip, idp_port, idp_scheme, idp_path
     req_redirect_external_idp = Request(
         method=method_form,
         url="{url}".format(url=url_form),
-        params=params,
+        data=params,
         headers=header_redirect_external_idp
     )
 
@@ -519,6 +525,12 @@ def login_external_idp(logger, s, header, idp_ip, idp_port, idp_scheme, idp_path
     response = s.send(prepared_request, verify=False, allow_redirects=False)
 
     logger.debug(response.status_code)
+
+    redirect_url = response.headers['Location']
+
+    keycloak_cookie_ext = response.cookies
+
+    response = redirect_to_idp(logger, s, redirect_url, header, keycloak_cookie_ext)
 
     keycloak_cookie2 = response.cookies
 
@@ -543,7 +555,7 @@ def login_external_idp(logger, s, header, idp_ip, idp_port, idp_scheme, idp_path
 
     # Authenticate to the external IDP
     response = send_credentials_to_idp(logger, s, header, idp2_ip, idp2_port, referer_url, url_form,
-                                           credentials_data, {**keycloak_cookie2}, method_form)
+                                           credentials_data, {**keycloak_cookie_ext}, method_form)
 
     credentials_cookie = response.cookies
 
