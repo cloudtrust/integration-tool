@@ -3,6 +3,7 @@
 # Copyright (C) 2018:
 #     Sonia Bogos, sonia.bogos@elca.ch
 #
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -15,15 +16,13 @@
 import pytest
 import logging
 import re
-import urllib.parse as urlparse
-from urllib.parse import urlencode
 
 import helpers.requests as req
+from http import HTTPStatus
 from helpers.logging import log_request
 
 from bs4 import BeautifulSoup
 from requests import Request, Session
-from http import HTTPStatus
 
 author = "Sonia Bogos"
 maintainer = "Sonia Bogos"
@@ -37,26 +36,25 @@ logging.basicConfig(
     format='%(asctime)s %(name)s %(levelname)s %(message)s',
     datefmt='%m/%d/%Y %I:%M:%S %p'
 )
-logger = logging.getLogger('acceptance-tool.tests.business_tests.test_CT_TC_WS_FED_BROKER_SIMPLE')
+logger = logging.getLogger('acceptance-tool.tests.business_tests.saml_tests.test_CT_TC_SAML_BROKER_ACCESS_CONTROL_ABAC_OK')
 logger.setLevel(logging.DEBUG)
 
 
 @pytest.mark.usefixtures('settings', 'import_realm', 'import_realm_external')
-class Test_CT_TC_WS_FED_BROKER_SIMPLE():
+class Test_test_CT_TC_SAML_BROKER_ACCESS_CONTROL_ABAC_OK():
     """
-    Class to test the CT_TC_SAML_SSO_BROKER_SIMPLE use case:
-    As a user of company B I need the solution to allow me to access applications of company A
-    after an authentication on company B IDP.
-    Company A applications are protected by Cloudtrust which acts as a broker.
+    #TODO: update
+    Class to test the test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_KO use case:
+    As a resource owner, I need the solution to prevent end users switching between applications in a timeframe smaller
+    than the allowed single sign on time span, to access applications they are not entitled to access.
     """
 
-    def test_CT_TC_WS_FED_BROKER_SIMPLE_SP_initiated(self, settings):
+    def test_CT_TC_SAML_BROKER_ACCESS_CONTROL_ABAC_OK_SP_initiated(self, settings):
         """
-        #TODO:update the description and the comments
-        Test the CT_TC_SAML_SSO_FORM_SIMPLE use case with the SP-initiated flow, i.e. the user accesses the application
-        , which is a service provider (SP), that redirects him to the keycloak, the identity provider (IDP).
-        The user has to login to keycloak which will give him the SAML token. The token will give him access to the
-        application.
+        #Todo:update
+        Scenario: User logs in to SP1 where he has the appropriate role.
+        Same user tries to log in to SP2, SP that he is not authorized to access. He should receive an
+        error message saying he has not the authorization.
         :param settings:
         :return:
         """
@@ -64,21 +62,30 @@ class Test_CT_TC_WS_FED_BROKER_SIMPLE():
         s = Session()
 
         # Service provider settings
-        sp = settings["sps_wsfed"][5]
+        sp = settings["sps_saml"][5]
         sp_ip = sp["ip"]
         sp_port = sp["port"]
         sp_scheme = sp["http_scheme"]
         sp_path = sp["path"]
         sp_message = sp["logged_in_message"]
 
+        # Service provider 2 settings
+        sp2 = settings["sps_saml"][6] #TODO: need to set it up
+        sp2_ip = sp2["ip"]
+        sp2_port = sp2["port"]
+        sp2_scheme = sp2["http_scheme"]
+        sp2_path = sp2["path"]
+        sp2_message = sp["logged_in_message"]
+
+
         # Identity provider settings
         idp_ip = settings["idp"]["ip"]
         idp_port = settings["idp"]["port"]
         idp_scheme = settings["idp"]["http_scheme"]
-        idp_broker = settings["idp"]["wsfed_broker"]
 
         idp_username = settings["idp_external"]["test_realm"]["username"]
         idp_password = settings["idp_external"]["test_realm"]["password"]
+        idp_broker = settings["idp"]["saml_broker"]
 
         idp2_ip = settings["idp_external"]["ip"]
         idp2_port = settings["idp_external"]["port"]
@@ -89,9 +96,13 @@ class Test_CT_TC_WS_FED_BROKER_SIMPLE():
         # Common header for all the requests
         header = req.get_header()
 
-        response = req.access_sp_ws_fed(logger, s, header, sp_ip, sp_port, sp_scheme, sp_path)
+        (session_cookie, response) = req.access_sp_saml(logger, s, header, sp_ip, sp_port, sp_scheme, sp_path,
+                                                        idp_ip, idp_port)
 
-        session_cookie = response.cookies
+        assert response.status_code == HTTPStatus.FOUND
+
+        # store the cookie received from keycloak
+        keycloak_cookie = response.cookies
 
         redirect_url = response.headers['Location']
 
@@ -101,9 +112,7 @@ class Test_CT_TC_WS_FED_BROKER_SIMPLE():
             'Referer': "{ip}:{port}".format(ip=sp_ip, port=sp_port)
         }
 
-        response = req.redirect_to_idp(logger, s, redirect_url, header_redirect_idp, session_cookie)
-
-        keycloak_cookie = response.cookies
+        response = req.redirect_to_idp(logger, s, redirect_url, header_redirect_idp, keycloak_cookie)
 
         # In the login page we can choose to login with the external IDP
         soup = BeautifulSoup(response.content, 'html.parser')
@@ -161,7 +170,7 @@ class Test_CT_TC_WS_FED_BROKER_SIMPLE():
         req_redirect_external_idp = Request(
             method=method_form,
             url="{url}".format(url=url_form),
-            params=params,
+            data=params,
             headers=header_redirect_external_idp
         )
 
@@ -180,7 +189,11 @@ class Test_CT_TC_WS_FED_BROKER_SIMPLE():
 
         logger.debug(response.status_code)
 
-        keycloak_cookie2 = response.cookies
+        redirect_url = response.headers['Location']
+
+        keycloak_cookie_ext = response.cookies
+
+        response = req.redirect_to_idp(logger, s, redirect_url, header, keycloak_cookie_ext)
 
         soup = BeautifulSoup(response.content, 'html.parser')
 
@@ -205,9 +218,11 @@ class Test_CT_TC_WS_FED_BROKER_SIMPLE():
 
         # Authenticate to the external IDP
         response = req.send_credentials_to_idp(logger, s, header, idp2_ip, idp2_port, referer_url, url_form,
-                                               credentials_data, {**keycloak_cookie2, **session_cookie}, method_form)
+                                               credentials_data, {**session_cookie, **keycloak_cookie_ext}, method_form)
 
         assert response.status_code == HTTPStatus.OK or response.status_code == HTTPStatus.FOUND
+
+        keycloak_cookie2 = response.cookies
 
         # get the HTTP binding response with the url to the broker IDP
         soup = BeautifulSoup(response.content, 'html.parser')
@@ -235,9 +250,11 @@ class Test_CT_TC_WS_FED_BROKER_SIMPLE():
 
         response = s.send(prepared_request, verify=False, allow_redirects=False)
 
+        keycloak_cookie3 = response.cookies
+
         logger.debug(response.status_code)
 
-        # Get the token from the broker IDP
+        # Get the token (SAML response) from the broker IDP
         soup = BeautifulSoup(response.content, 'html.parser')
         form = soup.body.form
 
@@ -259,12 +276,53 @@ class Test_CT_TC_WS_FED_BROKER_SIMPLE():
         # assert that we are logged in
         assert re.search(sp_message, response.text) is not None
 
-    def test_CT_TC_WS_FED_BROKER_SIMPLE_IDP_initiated(self, settings):
+        # User is logged in on SP1
+
+        # Attempt to perform login on SP2
+
+        (session_cookie, response) = req.access_sp_saml(logger, s, header, sp2_ip, sp2_port, sp2_scheme, sp2_path,
+                                                        idp_ip,
+                                                        idp_port)
+
+        session_cookie2 = response.cookies
+
+        redirect_url = response.headers['Location']
+
+        header_redirect_idp = {
+            **header,
+            'Host': "{ip}:{port}".format(ip=idp_ip, port=idp_port),
+            'Referer': "{ip}:{port}".format(ip=sp2_ip, port=sp2_port)
+        }
+
+        response = req.redirect_to_idp(logger, s, redirect_url, header_redirect_idp,
+                                       {**session_cookie2, **keycloak_cookie3})
+
+        soup = BeautifulSoup(response.content, 'html.parser')
+        form = soup.body.form
+
+        url_form = form.get('action')
+        inputs = form.find_all('input')
+        method_form = form.get('method')
+
+        # Get the token (SAML response) from the identity provider
+        token = {}
+        for input in inputs:
+            token[input.get('name')] = input.get('value')
+
+        (response, sp2_cookie) = req.access_sp_with_token(logger, s, header, sp2_ip, sp2_port, sp2_scheme, idp_scheme,
+                                                          idp_ip,
+                                                          idp_port, method_form, url_form, token, session_cookie,
+                                                          session_cookie2)
+
+        assert response.status_code == HTTPStatus.OK
+
+        assert re.search(sp2_message, response.text) is not None
+
+    def test_CT_TC_SAML_IDP_ACCESS_CONTROL_ABAC_OK_IDP_initiated(self, settings):
         """
-        #Todo: update!!!
-        Test the CT_TC_WS_FED_BROKER_SIMPLE use case with the IDP-initiated flow, i.e. the user logs in keycloak,
-        the identity provider (IDP), and then accesses the application, which is a service provider (SP).
-        The application redirect towards keycloak to obtain the SAML token.
+        Scenario: User logs in to the IDP. He then accesses SP1 where he has the appropriate role.
+        Same user tries to log in to SP2, that he is not authorized to access. He should receive an
+        error message saying he has not the authorization.
         :param settings:
         :return:
         """
@@ -272,12 +330,20 @@ class Test_CT_TC_WS_FED_BROKER_SIMPLE():
         s = Session()
 
         # Service provider settings
-        sp = settings["sps_wsfed"][5]
+        sp = settings["sps_saml"][5]
         sp_ip = sp["ip"]
         sp_port = sp["port"]
         sp_scheme = sp["http_scheme"]
         sp_path = sp["path"]
         sp_message = sp["logged_in_message"]
+
+        # Service provider 2 settings
+        sp2 = settings["sps_saml"][6]
+        sp2_ip = sp2["ip"]
+        sp2_port = sp2["port"]
+        sp2_scheme = sp2["http_scheme"]
+        sp2_path = sp2["path"]
+        sp2_message = sp["logged_in_message"]
 
         # Identity provider settings
         idp_ip = settings["idp"]["ip"]
@@ -286,10 +352,10 @@ class Test_CT_TC_WS_FED_BROKER_SIMPLE():
         idp_test_realm = settings["idp"]["test_realm"]["name"]
         idp_path = "auth/realms/{realm}/account".format(realm=idp_test_realm)
         idp_message = settings["idp"]["logged_in_message"]
-        idp_broker = settings["idp"]["wsfed_broker"]
 
         idp_username = settings["idp_external"]["test_realm"]["username"]
         idp_password = settings["idp_external"]["test_realm"]["password"]
+        idp_broker = settings["idp"]["saml_broker"]
 
         idp2_ip = settings["idp_external"]["ip"]
         idp2_port = settings["idp_external"]["port"]
@@ -311,47 +377,91 @@ class Test_CT_TC_WS_FED_BROKER_SIMPLE():
                                                                                              idp_username, idp_password,
                                                                                              idp2_ip, idp2_port, idp_broker)
 
-        # assert response.status_code == HTTPStatus.OK
-        #
-        # # Assert we are logged in
-        # assert re.search(idp_message, response.text) is not None
-        #
-        # response = req.access_sp_ws_fed(logger, s, header, sp_ip, sp_port, sp_scheme, sp_path)
-        #
-        # # store the cookie received from keycloak
-        # keycloak_cookie5 = response.cookies
-        #
-        # assert response.status_code == HTTPStatus.FOUND
-        #
-        # redirect_url = response.headers['Location']
-        #
-        # header_redirect_idp = {
-        #     **header,
-        #     'Host': "{ip}:{port}".format(ip=idp_ip, port=idp_port),
-        #     'Referer': "{ip}:{port}".format(ip=sp_ip, port=sp_port)
-        # }
-        #
-        # response = req.redirect_to_idp(logger, s, redirect_url, header_redirect_idp,
-        #                                {**keycloak_cookie5, **keycloak_cookie3})
-        #
-        # assert response.status_code == HTTPStatus.OK
-        #
-        # soup = BeautifulSoup(response.content, 'html.parser')
-        # form = soup.body.form
-        #
-        # url_form = form.get('action')
-        # inputs = form.find_all('input')
-        # method_form = form.get('method')
-        #
-        # # Get the token (SAML response) from the broker identity provider
-        # token = {}
-        # for input in inputs:
-        #     token[input.get('name')] = input.get('value')
-        #
-        # (response, sp_cookie) = req.access_sp_with_token(logger, s, header, sp_ip, sp_port, sp_scheme, idp_scheme,
-        #                                                  idp_ip, idp_port, method_form, url_form, token, keycloak_cookie5,
-        #                                                  keycloak_cookie5)
-        #
-        # assert response.status_code == HTTPStatus.OK
-        #
-        # assert re.search(sp_message, response.text) is not None
+        assert response.status_code == HTTPStatus.OK
+
+        # Assert we are logged in
+        assert re.search(idp_message, response.text) is not None
+
+        (session_cookie, response) = req.access_sp_saml(logger, s, header, sp_ip, sp_port, sp_scheme, sp_path, idp_ip,
+                                                        idp_port)
+
+        # store the cookie received from keycloak
+        keycloak_cookie5 = response.cookies
+
+        assert response.status_code == HTTPStatus.FOUND
+
+        redirect_url = response.headers['Location']
+
+        header_redirect_idp = {
+            **header,
+            'Host': "{ip}:{port}".format(ip=idp_ip, port=idp_port),
+            'Referer': "{ip}:{port}".format(ip=sp_ip, port=sp_port)
+        }
+
+        response = req.redirect_to_idp(logger, s, redirect_url, header_redirect_idp,
+                                       {**keycloak_cookie5, **keycloak_cookie3})
+
+        assert response.status_code == HTTPStatus.OK
+
+        soup = BeautifulSoup(response.content, 'html.parser')
+        form = soup.body.form
+
+        url_form = form.get('action')
+        inputs = form.find_all('input')
+        method_form = form.get('method')
+
+        # Get the token (SAML response) from the broker identity provider
+        token = {}
+        for input in inputs:
+            token[input.get('name')] = input.get('value')
+
+        (response, sp_cookie) = req.access_sp_with_token(logger, s, header, sp_ip, sp_port, sp_scheme, idp_scheme,
+                                                         idp_ip, idp_port, method_form, url_form, token, session_cookie,
+                                                         keycloak_cookie5)
+
+        assert response.status_code == HTTPStatus.OK
+
+        # assert that we are logged in
+        assert re.search(sp_message, response.text) is not None
+
+        # User is logged in on SP1
+
+        # Attempt to perform login on SP2
+
+        (session_cookie, response) = req.access_sp_saml(logger, s, header, sp2_ip, sp2_port, sp2_scheme, sp2_path,
+                                                        idp_ip,
+                                                        idp_port)
+
+        session_cookie2 = response.cookies
+
+        redirect_url = response.headers['Location']
+
+        header_redirect_idp = {
+            **header,
+            'Host': "{ip}:{port}".format(ip=idp_ip, port=idp_port),
+            'Referer': "{ip}:{port}".format(ip=sp2_ip, port=sp2_port)
+        }
+
+        response = req.redirect_to_idp(logger, s, redirect_url, header_redirect_idp,
+                                       {**session_cookie2, **keycloak_cookie3})
+
+        soup = BeautifulSoup(response.content, 'html.parser')
+        form = soup.body.form
+
+        url_form = form.get('action')
+        inputs = form.find_all('input')
+        method_form = form.get('method')
+
+        # Get the token (SAML response) from the identity provider
+        token = {}
+        for input in inputs:
+            token[input.get('name')] = input.get('value')
+
+        (response, sp2_cookie) = req.access_sp_with_token(logger, s, header, sp2_ip, sp2_port, sp2_scheme, idp_scheme,
+                                                          idp_ip,
+                                                          idp_port, method_form, url_form, token, session_cookie,
+                                                          session_cookie2)
+
+        assert response.status_code == HTTPStatus.OK
+
+        assert re.search(sp2_message, response.text) is not None

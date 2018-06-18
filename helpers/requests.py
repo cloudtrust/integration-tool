@@ -512,7 +512,7 @@ def login_external_idp(logger, s, header, idp_ip, idp_port, idp_scheme, idp_path
     req_redirect_external_idp = Request(
         method=method_form,
         url="{url}".format(url=url_form),
-        data=params,
+        params=params,
         headers=header_redirect_external_idp
     )
 
@@ -526,13 +526,15 @@ def login_external_idp(logger, s, header, idp_ip, idp_port, idp_scheme, idp_path
 
     logger.debug(response.status_code)
 
-    redirect_url = response.headers['Location']
+    # if we have an identity provider saml, we do an extra redirect
+    if idp_broker == "cloudtrust_saml":
 
-    keycloak_cookie_ext = response.cookies
+        redirect_url = response.headers['Location']
+        keycloak_cookie_ext = response.cookies
+        response = redirect_to_idp(logger, s, redirect_url, header, keycloak_cookie_ext)
+    else:
 
-    response = redirect_to_idp(logger, s, redirect_url, header, keycloak_cookie_ext)
-
-    keycloak_cookie2 = response.cookies
+        keycloak_cookie_ext = response.cookies
 
     soup = BeautifulSoup(response.content, 'html.parser')
 
