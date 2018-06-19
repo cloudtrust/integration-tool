@@ -44,20 +44,18 @@ logger.setLevel(logging.DEBUG)
 @pytest.mark.usefixtures('settings', 'import_realm', 'import_realm_external')
 class Test_CT_TC_WS_FED_BROKER_ACCESS_CONTROL_RBAC_KO():
     """
-    #TODO:update!
-    Class to test the CT_TC_SAML_SSO_BROKER_SIMPLE use case:
-    As a user of company B I need the solution to allow me to access applications of company A
-    after an authentication on company B IDP.
-    Company A applications are protected by Cloudtrust which acts as a broker.
+    Class to test the CT_TC_WS_FED_BROKER_ACCESS_CONTROL_RBAC_KO use case:
+    As a resource owner of company A, I need the solution to prevent end users of company B, switching
+    between applications of company A in a timeframe smaller than the allowed single sign on time span,
+    after an authentication on company B IDP, to access applications they are not entitled to access.
+    Company A applications are protected by CloudTrust which acts as a broker.
     """
 
     def test_CT_TC_WS_FED_BROKER_ACCESS_CONTROL_RBAC_KO_SP_initiated(self, settings):
         """
-        #TODO:update the description and the comments
-        Test the CT_TC_SAML_SSO_FORM_SIMPLE use case with the SP-initiated flow, i.e. the user accesses the application
-        , which is a service provider (SP), that redirects him to the keycloak, the identity provider (IDP).
-        The user has to login to keycloak which will give him the SAML token. The token will give him access to the
-        application.
+        Scenario: User logs in to SP1 where he has the appropriate role.
+        Same user tries to log in to SP2, SP that he is not authorized to access. He should receive an
+        error message saying he has not the authorization.
         :param settings:
         :return:
         """
@@ -295,10 +293,9 @@ class Test_CT_TC_WS_FED_BROKER_ACCESS_CONTROL_RBAC_KO():
 
     def test_CT_TC_WS_FED_BROKER_ACCESS_CONTROL_RBAC_KO_IDP_initiated(self, settings):
         """
-        #Todo: update!!!
-        Test the CT_TC_WS_FED_BROKER_SIMPLE use case with the IDP-initiated flow, i.e. the user logs in keycloak,
-        the identity provider (IDP), and then accesses the application, which is a service provider (SP).
-        The application redirect towards keycloak to obtain the SAML token.
+        Scenario: User logs in to the IDP. He then accesses SP1 where he has the appropriate role.
+        Same user tries to log in to SP2, that he is not authorized to access. He should receive an
+        error message saying he has not the authorization.
         :param settings:
         :return:
         """

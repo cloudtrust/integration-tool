@@ -36,25 +36,26 @@ logging.basicConfig(
     format='%(asctime)s %(name)s %(levelname)s %(message)s',
     datefmt='%m/%d/%Y %I:%M:%S %p'
 )
-logger = logging.getLogger('acceptance-tool.tests.business_tests.saml_tests.test_CT_TC_SAML_BROKER_ACCESS_CONTROL_RBAC_KO')
+logger = logging.getLogger('acceptance-tool.tests.business_tests.saml_tests.test_CT_TC_SAML_BROKER_ACCESS_CONTROL_RBAC_OK')
 logger.setLevel(logging.DEBUG)
 
 
 @pytest.mark.usefixtures('settings', 'import_realm', 'import_realm_external')
-class Test_test_CT_TC_SAML_BROKER_ACCESS_CONTROL_RBAC_KO():
+class Test_test_CT_TC_SAML_BROKER_ACCESS_CONTROL_RBAC_OK():
     """
     #TODO: update
     Class to test the test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_KO use case:
-    As a resource owner, I need the solution to prevent end users switching between applications in a timeframe smaller
-    than the allowed single sign on time span, to access applications they are not entitled to access.
+    As a end user of company B, switching between applications of company A in a timeframe smaller than the
+    allowed single sign on time span, after an authentication on company B IDP, I need the solution to grant me
+    access to applications that I am entitled to access without re-authenticating.
+    Company A applications are protected by CloudTrust which acts as a broker.
     """
 
-    def test_CT_TC_SAML_BROKER_ACCESS_CONTROL_RBAC_KO_SP_initiated(self, settings):
+    def test_CT_TC_SAML_BROKER_ACCESS_CONTROL_RBAC_OK_SP_initiated(self, settings):
         """
-        #Todo:update
         Scenario: User logs in to SP1 where he has the appropriate role.
-        Same user tries to log in to SP2, SP that he is not authorized to access. He should receive an
-        error message saying he has not the authorization.
+        Same user tries to log in to SP2, SP that he is authorized to access. He should
+        be able to access SP2 without authenticating again.
         :param settings:
         :return:
         """
@@ -70,7 +71,7 @@ class Test_test_CT_TC_SAML_BROKER_ACCESS_CONTROL_RBAC_KO():
         sp_message = sp["logged_in_message"]
 
         # Service provider 2 settings
-        sp2 = settings["sps_saml"][1] #TODO: need to set it up
+        sp2 = settings["sps_saml"][1]
         sp2_ip = sp2["ip"]
         sp2_port = sp2["port"]
         sp2_scheme = sp2["http_scheme"]
@@ -318,11 +319,11 @@ class Test_test_CT_TC_SAML_BROKER_ACCESS_CONTROL_RBAC_KO():
 
         assert re.search(sp2_message, response.text) is not None
 
-    def test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_KO_IDP_initiated(self, settings):
+    def test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_OK_IDP_initiated(self, settings):
         """
         Scenario: User logs in to the IDP. He then accesses SP1 where he has the appropriate role.
-        Same user tries to log in to SP2, that he is not authorized to access. He should receive an
-        error message saying he has not the authorization.
+        Same user tries to log in to SP2, that he is authorized to access. He should
+        be able to access SP2 without authenticating again.
         :param settings:
         :return:
         """

@@ -44,20 +44,18 @@ logger.setLevel(logging.DEBUG)
 @pytest.mark.usefixtures('settings', 'import_realm', 'import_realm_external')
 class Test_CT_TC_WS_FED_BROKER_ACCESS_CONTROL_ABAC_OK():
     """
-    #TODO:update!
-    Class to test the CT_TC_SAML_SSO_BROKER_SIMPLE use case:
-    As a user of company B I need the solution to allow me to access applications of company A
-    after an authentication on company B IDP.
-    Company A applications are protected by Cloudtrust which acts as a broker.
+    Class to test the CT_TC_WS_FED_BROKER_ACCESS_CONTROL_ABAC_OK use case:
+    As a end user of company B, switching between applications of company A in a timeframe smaller than
+    the allowed single sign on time span, after an authentication on company B IDP, I need the solution
+    to grant me access to applications that I am entitled to access without re-authenticating.
+    Company A applications are protected by CloudTrust which acts as a broker.
     """
 
     def test_CT_TC_WS_FED_BROKER_ACCESS_CONTROL_ABAC_OK_SP_initiated(self, settings):
         """
-        #TODO:update the description and the comments
-        Test the CT_TC_SAML_SSO_FORM_SIMPLE use case with the SP-initiated flow, i.e. the user accesses the application
-        , which is a service provider (SP), that redirects him to the keycloak, the identity provider (IDP).
-        The user has to login to keycloak which will give him the SAML token. The token will give him access to the
-        application.
+        Scenario: User logs in to SP1 where he has the appropriate attribute.
+        Same user tries to log in to SP2, SP that he is authorized to access. He should
+        be able to access SP2 without authenticating again.
         :param settings:
         :return:
         """
@@ -310,10 +308,9 @@ class Test_CT_TC_WS_FED_BROKER_ACCESS_CONTROL_ABAC_OK():
 
     def test_CT_TC_WS_FED_BROKER_ACCESS_CONTROL_ABAC_OK_IDP_initiated(self, settings):
         """A
-        #Todo: update!!!
-        Test the CT_TC_WS_FED_BROKER_SIMPLE use case with the IDP-initiated flow, i.e. the user logs in keycloak,
-        the identity provider (IDP), and then accesses the application, which is a service provider (SP).
-        The application redirect towards keycloak to obtain the SAML token.
+        Scenario: User logs in to the IDP. He then accesses SP1 where he has the appropriate attribute.
+        Same user tries to log in to SP2, that he is authorized to access. He should
+        be able to access SP2 without authenticating again.
         :param settings:
         :return:
         """

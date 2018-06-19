@@ -52,8 +52,7 @@ class Test_CT_TC_WS_FED_BROKER_SIMPLE():
 
     def test_CT_TC_WS_FED_BROKER_SIMPLE_SP_initiated(self, settings):
         """
-        #TODO:update the description and the comments
-        Test the CT_TC_SAML_SSO_FORM_SIMPLE use case with the SP-initiated flow, i.e. the user accesses the application
+        Test the CT_TC_WS_FED_BROKER_SIMPLE use case with the SP-initiated flow, i.e. the user accesses the application
         , which is a service provider (SP), that redirects him to the keycloak, the identity provider (IDP).
         The user has to login to keycloak which will give him the SAML token. The token will give him access to the
         application.
@@ -261,7 +260,6 @@ class Test_CT_TC_WS_FED_BROKER_SIMPLE():
 
     def test_CT_TC_WS_FED_BROKER_SIMPLE_IDP_initiated(self, settings):
         """
-        #Todo: update!!!
         Test the CT_TC_WS_FED_BROKER_SIMPLE use case with the IDP-initiated flow, i.e. the user logs in keycloak,
         the identity provider (IDP), and then accesses the application, which is a service provider (SP).
         The application redirect towards keycloak to obtain the SAML token.

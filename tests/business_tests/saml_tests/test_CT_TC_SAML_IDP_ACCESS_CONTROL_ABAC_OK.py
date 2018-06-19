@@ -34,7 +34,7 @@ logging.basicConfig(
     format='%(asctime)s %(name)s %(levelname)s %(message)s',
     datefmt='%m/%d/%Y %I:%M:%S %p'
 )
-logger = logging.getLogger('acceptance-tool.tests.business_tests.test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_OK')
+logger = logging.getLogger('acceptance-tool.tests.business_tests.test_CT_TC_SAML_IDP_ACCESS_CONTROL_ABAC_OK')
 logger.setLevel(logging.DEBUG)
 
 

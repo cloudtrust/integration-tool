@@ -46,15 +46,15 @@ class Test_CT_TC_WS_FED_IDP_CLAIM_AUG():
     Class to test the test_CT_TC_WS_FED_IDP_CLAIM_AUG use case:
     As a user I need CloudTrust to add additional information to my access token when I access applications,
     e.g., the network location at the time of authentication.
+    In these tests, IP at the time of authentication and claims from external applications are checked.
     """
 
     def test_CT_TC_WS_FED_IDP_CLAIM_AUG_SP_initiated(self, settings):
         """
-        ##TODO:update the comments
         Test the CT_TC_SAML_SSO_FORM_SIMPLE use case with the SP-initiated flow, i.e. the user accesses the application
         , which is a service provider (SP), that redirects him to the keycloak, the identity provider (IDP).
         The user has to login to keycloak which will give him the WSFED token. The token will give him access to the
-        application.
+        application. The token contains builtin and external claims.
         :param settings:
         :return:
         """
@@ -167,6 +167,7 @@ class Test_CT_TC_WS_FED_IDP_CLAIM_AUG():
         Test the CT_TC_SAML_SSO_FORM_SIMPLE use case with the IDP-initiated flow, i.e. the user logs in keycloak,
         the identity provider (IDP), and then accesses the application, which is a service provider (SP).
         The application redirect towards keycloak to obtain the WSFED token.
+        The token contains builtin and external claims.
         :param settings:
         :return:
         """

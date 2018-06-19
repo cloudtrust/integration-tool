@@ -50,7 +50,7 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
     def test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC(self, settings, login_sso_form):
         """
         Scenario: user is logged in on several SPs.
-        The user logs out of one SP. Access to all the other SPs should require a new log in.
+        The user logs out of one SP. Access to all SPs should require a new log in.
         :param settings:
         :return:
         """
