@@ -63,7 +63,7 @@ class Test_CT_TC_WS_FED_SSO_FORM_SIMPLE():
         s = Session()
 
         # Service provider settings
-        sps = [settings["sps_wsfed"][0], settings["sps_wsfed"][4]]
+        sps = [settings["sps_wsfed"][0], settings["sps_wsfed"][1]]
         for sp in sps:
             sp_ip = sp["ip"]
             sp_port = sp["port"]
@@ -82,14 +82,7 @@ class Test_CT_TC_WS_FED_SSO_FORM_SIMPLE():
             keycloak_login_form_id = settings["idp"]["login_form_id"]
 
             # Common header for all the requests
-            header = {
-                'Accept': "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-                'Accept-Encoding': "gzip, deflate",
-                'Accept-Language': "en-US,en;q=0.5",
-                'User-Agent': "Mozilla/5.0 (X11; Fedora; Linux x86_64; rv:59.0) Gecko/20100101 Firefox/59.0",
-                'Connection': "keep-alive",
-                'Upgrade-Insecure-Requests': "1",
-            }
+            header = req.get_header()
 
             response = req.access_sp_ws_fed(logger, s, header, sp_ip, sp_port, sp_scheme, sp_path)
 
@@ -170,7 +163,7 @@ class Test_CT_TC_WS_FED_SSO_FORM_SIMPLE():
         s = Session()
 
         # Service provider settings
-        sps = [settings["sps_wsfed"][0], settings["sps_wsfed"][4]]
+        sps = [settings["sps_wsfed"][0], settings["sps_wsfed"][1]]
         for sp in sps:
             sp_ip = sp["ip"]
             sp_port = sp["port"]
@@ -190,14 +183,7 @@ class Test_CT_TC_WS_FED_SSO_FORM_SIMPLE():
             idp_password = settings["idp"]["test_realm"]["password"]
 
             # Common header for all the requests
-            header = {
-                'Accept': "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-                'Accept-Encoding': "gzip, deflate",
-                'Accept-Language': "en-US,en;q=0.5",
-                'User-Agent': "Mozilla/5.0 (X11; Fedora; Linux x86_64; rv:59.0) Gecko/20100101 Firefox/59.0",
-                'Connection': "keep-alive",
-                'Upgrade-Insecure-Requests': "1",
-            }
+            header = req.get_header()
 
             (oath_cookie, keycloak_cookie, keycloak_cookie2, response) = req.login_idp(logger, s, header, idp_ip, idp_port,
                                                                                        idp_scheme, idp_path, idp_username,

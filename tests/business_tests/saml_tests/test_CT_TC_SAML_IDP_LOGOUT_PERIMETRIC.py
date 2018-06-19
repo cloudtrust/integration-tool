@@ -79,14 +79,7 @@ class Test_test_CT_TC_SAML_IDP_LOGOUT_PERIMETRIC():
         idp_scheme = settings["idp"]["http_scheme"]
 
         # Common header for all the requests
-        header = {
-            'Accept': "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-            'Accept-Encoding': "gzip, deflate",
-            'Accept-Language': "en-US,en;q=0.5",
-            'User-Agent': "Mozilla/5.0 (X11; Fedora; Linux x86_64; rv:59.0) Gecko/20100101 Firefox/59.0",
-            'Connection': "keep-alive",
-            'Upgrade-Insecure-Requests': "1",
-        }
+        header = req.get_header()
 
         # Perform login using the fixture login_sso_form
         sp_cookie, keycloak_cookie = login_sso_form

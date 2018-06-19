@@ -85,14 +85,7 @@ class Test_test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_OK():
         keycloak_login_form_id = settings["idp"]["login_form_id"]
 
         # Common header for all the requests
-        header = {
-            'Accept': "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-            'Accept-Encoding': "gzip, deflate",
-            'Accept-Language': "en-US,en;q=0.5",
-            'User-Agent': "Mozilla/5.0 (X11; Fedora; Linux x86_64; rv:59.0) Gecko/20100101 Firefox/59.0",
-            'Connection': "keep-alive",
-            'Upgrade-Insecure-Requests': "1",
-        }
+        header = req.get_header()
 
         # Perform login to SP1
 
@@ -156,9 +149,9 @@ class Test_test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_OK():
         for input in inputs:
             token[input.get('name')] = input.get('value')
 
-        (response, sp_cookie) = req.access_sp_with_token(logger, s, header, sp_ip, sp_port, idp_scheme, idp_ip,
+        (response, sp_cookie) = req.access_sp_with_token(logger, s, header, sp_ip, sp_port, sp_scheme, idp_scheme, idp_ip,
                                                          idp_port, method_form, url_form, token, session_cookie,
-                                                         keycloak_cookie_2, )
+                                                         keycloak_cookie_2)
 
         assert response.status_code == HTTPStatus.OK
 
@@ -198,7 +191,7 @@ class Test_test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_OK():
 
         (response, sp2_cookie) = req.access_sp_with_token(logger, s, header, sp2_ip, sp2_port, sp2_scheme, idp_scheme, idp_ip,
                                                           idp_port, method_form, url_form, token, session_cookie,
-                                                          session_cookie2, )
+                                                          session_cookie2)
 
         assert response.status_code == HTTPStatus.OK
 
@@ -243,14 +236,7 @@ class Test_test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_OK():
         idp_password = settings["idp"]["test_realm"]["password"]
 
         # Common header for all the requests
-        header = {
-            'Accept': "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-            'Accept-Encoding': "gzip, deflate",
-            'Accept-Language': "en-US,en;q=0.5",
-            'User-Agent': "Mozilla/5.0 (X11; Fedora; Linux x86_64; rv:59.0) Gecko/20100101 Firefox/59.0",
-            'Connection': "keep-alive",
-            'Upgrade-Insecure-Requests': "1",
-        }
+        header = req.get_header()
 
         # Perform login to IDP
         (oath_cookie, keycloak_cookie, keycloak_cookie2, response) = req.login_idp(logger, s, header, idp_ip,
@@ -299,7 +285,7 @@ class Test_test_CT_TC_SAML_IDP_ACCESS_CONTROL_RBAC_OK():
 
         (response, sp_cookie) = req.access_sp_with_token(logger, s, header, sp_ip, sp_port, sp_scheme, idp_scheme, idp_ip,
                                                          idp_port, method_form, url_form, token, session_cookie,
-                                                         keycloak_cookie2, )
+                                                         keycloak_cookie2)
 
         assert response.status_code == HTTPStatus.OK
 

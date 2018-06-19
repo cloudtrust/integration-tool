@@ -62,7 +62,7 @@ class Test_test_CT_TC_SAML_BROKER_ACCESS_CONTROL_ABAC_OK():
         s = Session()
 
         # Service provider settings
-        sp = settings["sps_saml"][5]
+        sp = settings["sps_saml"][0]
         sp_ip = sp["ip"]
         sp_port = sp["port"]
         sp_scheme = sp["http_scheme"]
@@ -70,7 +70,7 @@ class Test_test_CT_TC_SAML_BROKER_ACCESS_CONTROL_ABAC_OK():
         sp_message = sp["logged_in_message"]
 
         # Service provider 2 settings
-        sp2 = settings["sps_saml"][6] #TODO: need to set it up
+        sp2 = settings["sps_saml"][1] #TODO: need to set it up
         sp2_ip = sp2["ip"]
         sp2_port = sp2["port"]
         sp2_scheme = sp2["http_scheme"]
@@ -330,7 +330,7 @@ class Test_test_CT_TC_SAML_BROKER_ACCESS_CONTROL_ABAC_OK():
         s = Session()
 
         # Service provider settings
-        sp = settings["sps_saml"][5]
+        sp = settings["sps_saml"][0]
         sp_ip = sp["ip"]
         sp_port = sp["port"]
         sp_scheme = sp["http_scheme"]
@@ -338,7 +338,7 @@ class Test_test_CT_TC_SAML_BROKER_ACCESS_CONTROL_ABAC_OK():
         sp_message = sp["logged_in_message"]
 
         # Service provider 2 settings
-        sp2 = settings["sps_saml"][6]
+        sp2 = settings["sps_saml"][1]
         sp2_ip = sp2["ip"]
         sp2_port = sp2["port"]
         sp2_scheme = sp2["http_scheme"]

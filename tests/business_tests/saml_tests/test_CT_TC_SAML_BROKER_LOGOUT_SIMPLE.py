@@ -66,7 +66,7 @@ class Test_CT_TC_SAML_SSO_BROKER_LOGOUT_SIMPLE():
         s = Session()
 
         # Service provider settings
-        sp = settings["sps_saml"][5]
+        sp = settings["sps_saml"][0]
         sp_ip = sp["ip"]
         sp_port = sp["port"]
         sp_scheme = sp["http_scheme"]

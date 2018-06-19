@@ -13,7 +13,9 @@
       "logged_out_message": "You have logged out"
     },
     {
+      "_comment": "This SAML client has the Force Binding set to OFF and the Front Channel Logout set to OFF (while the rest of the client have these options to ON, by default)",
       "name": "sp_saml2",
+      "sso_url_name": "sp_saml2",
       "protocol": "saml",
       "ip": "127.0.0.1",
       "port": "9001",
@@ -44,67 +46,6 @@
       "logout_path": "singleLogout",
       "logged_in_message": "Login successful, welcome",
       "logged_out_message": "You have logged out"
-    },
-    {
-      "_comment": "This SAML client has the Force Binding set to OFF and the Fron Channel Logout set to OFF (while the rest of the client have these options to ON, by default)",
-      "name": "sp_saml5",
-      "sso_url_name": "sp_saml5",
-      "protocol": "saml",
-      "ip": "127.0.0.1",
-      "port": "9004",
-      "http_scheme": "http",
-      "path": "tokenInformation",
-      "logout_path": "singleLogout",
-      "logged_in_message": "Login successful, welcome",
-      "logged_out_message": "You have logged out"
-    },
-    {
-      "name": "sp_saml1_external",
-      "sso_url_name": "sp_saml1_external",
-      "protocol": "saml",
-      "ip": "127.0.0.1",
-      "port": "9010",
-      "http_scheme": "http",
-      "path": "tokenInformation",
-      "logout_path": "singleLogout",
-      "logged_in_message": "Login successful, welcome",
-      "logged_out_message": "You have logged out"
-    },
-    {
-      "name": "sp_saml2_external",
-      "sso_url_name": "sp_saml2_external",
-      "protocol": "saml",
-      "ip": "127.0.0.1",
-      "port": "9011",
-      "http_scheme": "http",
-      "path": "tokenInformation",
-      "logout_path": "singleLogout",
-      "logged_in_message": "Login successful, welcome",
-      "logged_out_message": "You have logged out"
-    },
-    {
-      "name": "sp_saml3_external",
-      "sso_url_name": "sp_saml3_external",
-      "protocol": "saml",
-      "ip": "127.0.0.1",
-      "port": "9012",
-      "http_scheme": "http",
-      "path": "tokenInformation",
-      "logout_path": "singleLogout",
-      "logged_in_message": "Login successful, welcome",
-      "logged_out_message": "You have logged out"
-    },
-    {
-      "name": "sp_saml4_external",
-      "sso_url_name": "sp_saml4_external",
-      "protocol": "saml",
-      "ip": "127.0.0.1",
-      "port": "9013",
-      "http_scheme": "http",
-      "path": "tokenInformation",
-      "logout_path": "singleLogout",
-      "logged_in_message": "Login successful, welcome",
-      "logged_out_message": "You have logged out"
     }
   ],
   "sps_wsfed": [
@@ -120,6 +61,7 @@
       "logged_out_message": "You have logged out"
     },
     {
+       "_comment": "This WSFED client has the SAML Assertion Token Format set to SAML 1.1 and the Front Channel Logout set to ON (while the rest of the clients have these options set to SAML 2.0 and OFF respectively, by default)",
       "name": "sp_wsfed2",
       "protocol": "wsfed",
       "ip": "127.0.0.1",
@@ -146,62 +88,6 @@
       "protocol": "wsfed",
       "ip": "127.0.0.1",
       "port": "7003",
-      "http_scheme": "http",
-      "path": "tokenInformation",
-      "logout_path": "singleLogout",
-      "logged_in_message": "Login successful, welcome",
-      "logged_out_message": "You have logged out"
-    },
-    {
-      "_comment": "This WSFED client has the SAML Assertion Token Format set to SAML 1.1 and the Front Channel Logout set to ON (while the rest of the clients have these options set to SAML 2.0 and OFF respectively, by default)",
-      "name": "sp_wsfed5",
-      "protocol": "wsfed",
-      "ip": "127.0.0.1",
-      "port": "7004",
-      "http_scheme": "http",
-      "path": "tokenInformation",
-      "logout_path": "singleLogout",
-      "logged_in_message": "Login successful, welcome",
-      "logged_out_message": "You have logged out"
-    },
-    {
-      "name": "sp_wsfed1_external",
-      "protocol": "wsfed",
-      "ip": "127.0.0.1",
-      "port": "7010",
-      "http_scheme": "http",
-      "path": "tokenInformation",
-      "logout_path": "singleLogout",
-      "logged_in_message": "Login successful, welcome",
-      "logged_out_message": "You have logged out"
-    },
-    {
-      "name": "sp_wsfed2_external",
-      "protocol": "wsfed",
-      "ip": "127.0.0.1",
-      "port": "7011",
-      "http_scheme": "http",
-      "path": "tokenInformation",
-      "logout_path": "singleLogout",
-      "logged_in_message": "Login successful, welcome",
-      "logged_out_message": "You have logged out"
-    },
-    {
-      "name": "sp_wsfed3_external",
-      "protocol": "wsfed",
-      "ip": "127.0.0.1",
-      "port": "7012",
-      "http_scheme": "http",
-      "path": "tokenInformation",
-      "logout_path": "singleLogout",
-      "logged_in_message": "Login successful, welcome",
-      "logged_out_message": "You have logged out"
-    },
-    {
-      "name": "sp_wsfed4_external",
-      "protocol": "wsfed",
-      "ip": "127.0.0.1",
-      "port": "7013",
       "http_scheme": "http",
       "path": "tokenInformation",
       "logout_path": "singleLogout",

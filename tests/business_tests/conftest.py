@@ -20,7 +20,6 @@ from helpers.logging import log_request
 
 from bs4 import BeautifulSoup
 from requests import Request, Session
-from http import HTTPStatus
 
 logging.basicConfig(
     format='%(asctime)s %(name)s %(levelname)s %(message)s',
@@ -183,7 +182,7 @@ def login_broker_sso_form(settings, pytestconfig):
         client = "sps_saml"
 
     # Service provider settings
-    sp = settings[client][5]
+    sp = settings[client][0]
     sp_ip = sp["ip"]
     sp_port = sp["port"]
     sp_scheme = sp["http_scheme"]

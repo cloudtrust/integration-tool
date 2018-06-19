@@ -64,7 +64,7 @@ class Test_CT_TC_WS_FED_BROKER_SIMPLE():
         s = Session()
 
         # Service provider settings
-        sp = settings["sps_wsfed"][5]
+        sp = settings["sps_wsfed"][0]
         sp_ip = sp["ip"]
         sp_port = sp["port"]
         sp_scheme = sp["http_scheme"]
@@ -272,7 +272,7 @@ class Test_CT_TC_WS_FED_BROKER_SIMPLE():
         s = Session()
 
         # Service provider settings
-        sp = settings["sps_wsfed"][5]
+        sp = settings["sps_wsfed"][0]
         sp_ip = sp["ip"]
         sp_port = sp["port"]
         sp_scheme = sp["http_scheme"]
@@ -311,47 +311,47 @@ class Test_CT_TC_WS_FED_BROKER_SIMPLE():
                                                                                              idp_username, idp_password,
                                                                                              idp2_ip, idp2_port, idp_broker)
 
-        # assert response.status_code == HTTPStatus.OK
-        #
-        # # Assert we are logged in
-        # assert re.search(idp_message, response.text) is not None
-        #
-        # response = req.access_sp_ws_fed(logger, s, header, sp_ip, sp_port, sp_scheme, sp_path)
-        #
-        # # store the cookie received from keycloak
-        # keycloak_cookie5 = response.cookies
-        #
-        # assert response.status_code == HTTPStatus.FOUND
-        #
-        # redirect_url = response.headers['Location']
-        #
-        # header_redirect_idp = {
-        #     **header,
-        #     'Host': "{ip}:{port}".format(ip=idp_ip, port=idp_port),
-        #     'Referer': "{ip}:{port}".format(ip=sp_ip, port=sp_port)
-        # }
-        #
-        # response = req.redirect_to_idp(logger, s, redirect_url, header_redirect_idp,
-        #                                {**keycloak_cookie5, **keycloak_cookie3})
-        #
-        # assert response.status_code == HTTPStatus.OK
-        #
-        # soup = BeautifulSoup(response.content, 'html.parser')
-        # form = soup.body.form
-        #
-        # url_form = form.get('action')
-        # inputs = form.find_all('input')
-        # method_form = form.get('method')
-        #
-        # # Get the token (SAML response) from the broker identity provider
-        # token = {}
-        # for input in inputs:
-        #     token[input.get('name')] = input.get('value')
-        #
-        # (response, sp_cookie) = req.access_sp_with_token(logger, s, header, sp_ip, sp_port, sp_scheme, idp_scheme,
-        #                                                  idp_ip, idp_port, method_form, url_form, token, keycloak_cookie5,
-        #                                                  keycloak_cookie5)
-        #
-        # assert response.status_code == HTTPStatus.OK
-        #
-        # assert re.search(sp_message, response.text) is not None
+        assert response.status_code == HTTPStatus.OK
+
+        # Assert we are logged in
+        assert re.search(idp_message, response.text) is not None
+
+        response = req.access_sp_ws_fed(logger, s, header, sp_ip, sp_port, sp_scheme, sp_path)
+
+        # store the cookie received from keycloak
+        keycloak_cookie5 = response.cookies
+
+        assert response.status_code == HTTPStatus.FOUND
+
+        redirect_url = response.headers['Location']
+
+        header_redirect_idp = {
+            **header,
+            'Host': "{ip}:{port}".format(ip=idp_ip, port=idp_port),
+            'Referer': "{ip}:{port}".format(ip=sp_ip, port=sp_port)
+        }
+
+        response = req.redirect_to_idp(logger, s, redirect_url, header_redirect_idp,
+                                       {**keycloak_cookie5, **keycloak_cookie3})
+
+        assert response.status_code == HTTPStatus.OK
+
+        soup = BeautifulSoup(response.content, 'html.parser')
+        form = soup.body.form
+
+        url_form = form.get('action')
+        inputs = form.find_all('input')
+        method_form = form.get('method')
+
+        # Get the token (SAML response) from the broker identity provider
+        token = {}
+        for input in inputs:
+            token[input.get('name')] = input.get('value')
+
+        (response, sp_cookie) = req.access_sp_with_token(logger, s, header, sp_ip, sp_port, sp_scheme, idp_scheme,
+                                                         idp_ip, idp_port, method_form, url_form, token, keycloak_cookie5,
+                                                         keycloak_cookie5)
+
+        assert response.status_code == HTTPStatus.OK
+
+        assert re.search(sp_message, response.text) is not None

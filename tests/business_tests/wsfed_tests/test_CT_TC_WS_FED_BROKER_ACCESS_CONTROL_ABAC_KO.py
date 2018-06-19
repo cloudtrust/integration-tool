@@ -65,7 +65,7 @@ class Test_CT_TC_WS_FED_BROKER_ACCESS_CONTROL_ABAC_KO():
         s = Session()
 
         # Service provider settings
-        sp = settings["sps_wsfed"][5]
+        sp = settings["sps_wsfed"][0]
         sp_ip = sp["ip"]
         sp_port = sp["port"]
         sp_scheme = sp["http_scheme"]
@@ -73,7 +73,7 @@ class Test_CT_TC_WS_FED_BROKER_ACCESS_CONTROL_ABAC_KO():
         sp_message = sp["logged_in_message"]
 
         # Service provider 2 settings
-        sp2 = settings["sps_wsfed"][8]
+        sp2 = settings["sps_wsfed"][3]
         sp2_ip = sp2["ip"]
         sp2_port = sp2["port"]
         sp2_scheme = sp2["http_scheme"]
@@ -306,7 +306,7 @@ class Test_CT_TC_WS_FED_BROKER_ACCESS_CONTROL_ABAC_KO():
         s = Session()
 
         # Service provider settings
-        sp = settings["sps_wsfed"][5]
+        sp = settings["sps_wsfed"][0]
         sp_ip = sp["ip"]
         sp_port = sp["port"]
         sp_scheme = sp["http_scheme"]
@@ -314,7 +314,7 @@ class Test_CT_TC_WS_FED_BROKER_ACCESS_CONTROL_ABAC_KO():
         sp_message = sp["logged_in_message"]
 
         # Service provider 2 settings
-        sp2 = settings["sps_wsfed"][8]
+        sp2 = settings["sps_wsfed"][3]
         sp2_ip = sp2["ip"]
         sp2_port = sp2["port"]
         sp2_scheme = sp2["http_scheme"]
