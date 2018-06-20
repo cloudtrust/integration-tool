@@ -508,6 +508,7 @@ def login_external_idp(logger, s, header, idp_ip, idp_port, idp_scheme, idp_path
         'Referer': "{ip}:{port}".format(ip=idp_ip, port=idp_port)
     }
 
+
     # Redirect to external IDP
     if idp_broker == "cloudtrust_saml":
         req_redirect_external_idp = Request(

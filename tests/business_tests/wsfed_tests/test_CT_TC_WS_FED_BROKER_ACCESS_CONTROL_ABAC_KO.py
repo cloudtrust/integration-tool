@@ -83,7 +83,6 @@ class Test_CT_TC_WS_FED_BROKER_ACCESS_CONTROL_ABAC_KO():
         idp_ip = settings["idp"]["ip"]
         idp_port = settings["idp"]["port"]
         idp_scheme = settings["idp"]["http_scheme"]
-        idp_broker = settings["idp"]["wsfed_broker"]
 
         idp_username = settings["idp_external"]["test_realm"]["username"]
         idp_password = settings["idp_external"]["test_realm"]["password"]
@@ -97,200 +96,214 @@ class Test_CT_TC_WS_FED_BROKER_ACCESS_CONTROL_ABAC_KO():
         # Common header for all the requests
         header = req.get_header()
 
-        response = req.access_sp_ws_fed(logger, s, header, sp_ip, sp_port, sp_scheme, sp_path)
+        # We check that test works for both types of identity provider
+        idp_brokers = [settings["idp"]["saml_broker"], settings["idp"]["wsfed_broker"]]
 
-        session_cookie = response.cookies
+        for idp_broker in idp_brokers:
 
-        redirect_url = response.headers['Location']
+            response = req.access_sp_ws_fed(logger, s, header, sp_ip, sp_port, sp_scheme, sp_path)
 
-        header_redirect_idp = {
-            **header,
-            'Host': "{ip}:{port}".format(ip=idp_ip, port=idp_port),
-            'Referer': "{ip}:{port}".format(ip=sp_ip, port=sp_port)
-        }
+            session_cookie = response.cookies
 
-        response = req.redirect_to_idp(logger, s, redirect_url, header_redirect_idp, session_cookie)
+            redirect_url = response.headers['Location']
 
-        keycloak_cookie = response.cookies
+            header_redirect_idp = {
+                **header,
+                'Host': "{ip}:{port}".format(ip=idp_ip, port=idp_port),
+                'Referer': "{ip}:{port}".format(ip=sp_ip, port=sp_port)
+            }
 
-        # In the login page we can choose to login with the external IDP
-        soup = BeautifulSoup(response.content, 'html.parser')
+            response = req.redirect_to_idp(logger, s, redirect_url, header_redirect_idp, session_cookie)
 
-        div = soup.find("div", {"id": "kc-social-providers"})
+            keycloak_cookie = response.cookies
 
-        assert div is not None
+            # In the login page we can choose to login with the external IDP
+            soup = BeautifulSoup(response.content, 'html.parser')
 
-        # we can have several idp external; choose the one needed for the test
-        all_li = div.find_all('li')
-        for li in all_li:
-            if li.span.text == idp_broker:
-                external_idp_url = "{scheme}://{ip}:{port}".format(scheme=idp_scheme, ip=idp_ip, port=idp_port) + li.a[
-                    'href']
+            div = soup.find("div", {"id": "kc-social-providers"})
 
-        assert external_idp_url is not None
+            assert div is not None
 
-        # Select to login with the external IDP
-        req_choose_external_idp = Request(
-            method='GET',
-            url="{url}".format(url=external_idp_url),
-            headers=header,
-            cookies=keycloak_cookie
-        )
+            # we can have several idp external; choose the one needed for the test
+            all_li = div.find_all('li')
+            for li in all_li:
+                if li.span.text == idp_broker:
+                    external_idp_url = "{scheme}://{ip}:{port}".format(scheme=idp_scheme, ip=idp_ip, port=idp_port) + li.a[
+                        'href']
 
-        prepared_request = req_choose_external_idp.prepare()
+            assert external_idp_url is not None
 
-        log_request(logger, req_choose_external_idp)
+            # Select to login with the external IDP
+            req_choose_external_idp = Request(
+                method='GET',
+                url="{url}".format(url=external_idp_url),
+                headers=header,
+                cookies=keycloak_cookie
+            )
 
-        response = s.send(prepared_request, verify=False, allow_redirects=False)
+            prepared_request = req_choose_external_idp.prepare()
 
-        logger.debug(response.status_code)
+            log_request(logger, req_choose_external_idp)
 
-        assert response.status_code == HTTPStatus.OK or response.status_code == HTTPStatus.FOUND
+            response = s.send(prepared_request, verify=False, allow_redirects=False)
 
-        # get the HTTP binding response with the url to the external IDP
-        soup = BeautifulSoup(response.content, 'html.parser')
-        form = soup.body.form
+            logger.debug(response.status_code)
 
-        url_form = form.get('action')
-        inputs = form.find_all('input')
-        method_form = form.get('method')
+            assert response.status_code == HTTPStatus.OK or response.status_code == HTTPStatus.FOUND
 
-        params = {}
-        for input in inputs:
-            params[input.get('name')] = input.get('value')
+            # get the HTTP binding response with the url to the external IDP
+            soup = BeautifulSoup(response.content, 'html.parser')
+            form = soup.body.form
 
-        header_redirect_external_idp = {
-            **header,
-            'Host': "{ip}:{port}".format(ip=idp2_ip, port=idp2_port),
-            'Referer': "{ip}:{port}".format(ip=idp_ip, port=idp_port)
-        }
+            url_form = form.get('action')
+            inputs = form.find_all('input')
+            method_form = form.get('method')
 
-        # Redirect to external IDP
-        req_redirect_external_idp = Request(
-            method=method_form,
-            url="{url}".format(url=url_form),
-            params=params,
-            headers=header_redirect_external_idp
-        )
+            params = {}
+            for input in inputs:
+                params[input.get('name')] = input.get('value')
 
-        # url_parts = list(urlparse.urlparse(url_form))
-        # query = dict(urlparse.parse_qsl(url_parts[4]))
-        # query.update(params)
-        # url_parts[4] = urlencode(query)
-        # referer_url = urlparse.urlunparse(url_parts)
-        referer_url = url_form
+            header_redirect_external_idp = {
+                **header,
+                'Host': "{ip}:{port}".format(ip=idp2_ip, port=idp2_port),
+                'Referer': "{ip}:{port}".format(ip=idp_ip, port=idp_port)
+            }
 
-        prepared_request = req_redirect_external_idp.prepare()
+            # Redirect to external IDP
+            if idp_broker == "cloudtrust_saml":
+                req_redirect_external_idp = Request(
+                    method=method_form,
+                    url="{url}".format(url=url_form),
+                    data=params,
+                    headers=header_redirect_external_idp
+                )
+            else:
+                req_redirect_external_idp = Request(
+                    method=method_form,
+                    url="{url}".format(url=url_form),
+                    params=params,
+                    headers=header_redirect_external_idp
+                )
 
-        log_request(logger, req_redirect_external_idp)
+            referer_url = url_form
 
-        response = s.send(prepared_request, verify=False, allow_redirects=False)
+            prepared_request = req_redirect_external_idp.prepare()
 
-        logger.debug(response.status_code)
+            log_request(logger, req_redirect_external_idp)
 
-        keycloak_cookie2 = response.cookies
+            response = s.send(prepared_request, verify=False, allow_redirects=False)
 
-        soup = BeautifulSoup(response.content, 'html.parser')
+            logger.debug(response.status_code)
 
-        form = soup.find("form", {"id": keycloak_login_form_id})
+            # if we have an identity provider saml, we do an extra redirect
+            if idp_broker == "cloudtrust_saml":
+                redirect_url = response.headers['Location']
+                keycloak_cookie2 = response.cookies
+                response = req.redirect_to_idp(logger, s, redirect_url, header, keycloak_cookie2)
+            else:
+                keycloak_cookie2 = response.cookies
 
-        assert form is not None
+            soup = BeautifulSoup(response.content, 'html.parser')
 
-        url_form = form.get('action')
-        method_form = form.get('method')
-        inputs = form.find_all('input')
+            form = soup.find("form", {"id": keycloak_login_form_id})
 
-        input_name = []
-        for input in inputs:
-            input_name.append(input.get('name'))
+            assert form is not None
 
-        assert "username" in input_name
-        assert "password" in input_name
+            url_form = form.get('action')
+            method_form = form.get('method')
+            inputs = form.find_all('input')
 
-        credentials_data = {}
-        credentials_data["username"] = idp_username
-        credentials_data["password"] = idp_password
+            input_name = []
+            for input in inputs:
+                input_name.append(input.get('name'))
 
-        # Authenticate to the external IDP
-        response = req.send_credentials_to_idp(logger, s, header, idp2_ip, idp2_port, referer_url, url_form,
-                                               credentials_data, {**keycloak_cookie2, **session_cookie}, method_form)
+            assert "username" in input_name
+            assert "password" in input_name
 
-        assert response.status_code == HTTPStatus.OK or response.status_code == HTTPStatus.FOUND
+            credentials_data = {}
+            credentials_data["username"] = idp_username
+            credentials_data["password"] = idp_password
 
-        # get the HTTP binding response with the url to the broker IDP
-        soup = BeautifulSoup(response.content, 'html.parser')
-        form = soup.body.form
+            # Authenticate to the external IDP
+            response = req.send_credentials_to_idp(logger, s, header, idp2_ip, idp2_port, referer_url, url_form,
+                                                   credentials_data, {**keycloak_cookie2, **session_cookie}, method_form)
 
-        url_form = form.get('action')
-        inputs = form.find_all('input')
-        method_form = form.get('method')
+            assert response.status_code == HTTPStatus.OK or response.status_code == HTTPStatus.FOUND
 
-        token = {}
-        for input in inputs:
-            token[input.get('name')] = input.get('value')
+            # get the HTTP binding response with the url to the broker IDP
+            soup = BeautifulSoup(response.content, 'html.parser')
+            form = soup.body.form
 
-        req_token_from_external_idp = Request(
-            method=method_form,
-            url="{url}".format(url=url_form),
-            data=token,
-            cookies=keycloak_cookie,
-            headers=header
-        )
+            url_form = form.get('action')
+            inputs = form.find_all('input')
+            method_form = form.get('method')
 
-        prepared_request = req_token_from_external_idp.prepare()
+            token = {}
+            for input in inputs:
+                token[input.get('name')] = input.get('value')
 
-        log_request(logger, req_token_from_external_idp)
+            req_token_from_external_idp = Request(
+                method=method_form,
+                url="{url}".format(url=url_form),
+                data=token,
+                cookies=keycloak_cookie,
+                headers=header
+            )
 
-        response = s.send(prepared_request, verify=False, allow_redirects=False)
+            prepared_request = req_token_from_external_idp.prepare()
 
-        keycloak_cookie3 = response.cookies
+            log_request(logger, req_token_from_external_idp)
 
-        logger.debug(response.status_code)
+            response = s.send(prepared_request, verify=False, allow_redirects=False)
 
-        # Get the token from the broker IDP
-        soup = BeautifulSoup(response.content, 'html.parser')
-        form = soup.body.form
+            keycloak_cookie3 = response.cookies
 
-        url_form = form.get('action')
-        inputs = form.find_all('input')
-        method_form = form.get('method')
+            logger.debug(response.status_code)
 
-        token = {}
-        for input in inputs:
-            token[input.get('name')] = input.get('value')
+            # Get the token from the broker IDP
+            soup = BeautifulSoup(response.content, 'html.parser')
+            form = soup.body.form
 
-        # Access SP with the token
-        (response, sp_cookie) = req.access_sp_with_token(logger, s, header, sp_ip, sp_port, sp_scheme, idp_scheme,
-                                                         idp_ip, idp_port, method_form, url_form, token, session_cookie,
-                                                         keycloak_cookie2)
+            url_form = form.get('action')
+            inputs = form.find_all('input')
+            method_form = form.get('method')
 
-        assert response.status_code == HTTPStatus.OK
+            token = {}
+            for input in inputs:
+                token[input.get('name')] = input.get('value')
 
-        # assert that we are logged in
-        assert re.search(sp_message, response.text) is not None
+            # Access SP with the token
+            (response, sp_cookie) = req.access_sp_with_token(logger, s, header, sp_ip, sp_port, sp_scheme, idp_scheme,
+                                                             idp_ip, idp_port, method_form, url_form, token, session_cookie,
+                                                             keycloak_cookie2)
 
-        # User is logged in on SP1
+            assert response.status_code == HTTPStatus.OK
 
-        # Attempt to perform login on SP2
+            # assert that we are logged in
+            assert re.search(sp_message, response.text) is not None
 
-        response = req.access_sp_ws_fed(logger, s, header, sp2_ip, sp2_port, sp2_scheme, sp2_path)
+            # User is logged in on SP1
 
-        session_cookie = response.cookies
+            # Attempt to perform login on SP2
 
-        redirect_url = response.headers['Location']
+            response = req.access_sp_ws_fed(logger, s, header, sp2_ip, sp2_port, sp2_scheme, sp2_path)
 
-        header_redirect_idp = {
-            **header,
-            'Host': "{ip}:{port}".format(ip=idp_ip, port=idp_port),
-            'Referer': "{ip}:{port}".format(ip=sp2_ip, port=sp2_port)
-        }
+            session_cookie = response.cookies
 
-        response = req.redirect_to_idp(logger, s, redirect_url, header_redirect_idp, {**keycloak_cookie3})
+            redirect_url = response.headers['Location']
 
-        # Assert that the client is not authorized to access SP2
-        assert response.status_code == HTTPStatus.FORBIDDEN
+            header_redirect_idp = {
+                **header,
+                'Host': "{ip}:{port}".format(ip=idp_ip, port=idp_port),
+                'Referer': "{ip}:{port}".format(ip=sp2_ip, port=sp2_port)
+            }
 
-        assert re.search(sp2_message, response.text) is not None
+            response = req.redirect_to_idp(logger, s, redirect_url, header_redirect_idp, {**keycloak_cookie3})
+
+            # Assert that the client is not authorized to access SP2
+            assert response.status_code == HTTPStatus.FORBIDDEN
+
+            assert re.search(sp2_message, response.text) is not None
 
     def test_CT_TC_WS_FED_BROKER_ACCESS_CONTROL_ABAC_KO_IDP_initiated(self, settings):
         """
@@ -345,78 +358,83 @@ class Test_CT_TC_WS_FED_BROKER_ACCESS_CONTROL_ABAC_KO():
         # Common header for all the requests
         header = req.get_header()
 
-        # Login to the external IDP
-        (oath_cookie, keycloak_cookie3, keycloak_cookie4, response) = req.login_external_idp(logger, s,
-                                                                                             header, idp_ip, idp_port,
-                                                                                             idp_scheme, idp_path,
-                                                                                             idp_username, idp_password,
-                                                                                             idp2_ip, idp2_port, idp_broker)
+        # We check that the test works for both types of identity provider
+        idp_brokers = [settings["idp"]["saml_broker"], settings["idp"]["wsfed_broker"]]
 
-        assert response.status_code == HTTPStatus.OK
+        for idp_broker in idp_brokers:
 
-        # Assert we are logged in
-        assert re.search(idp_message, response.text) is not None
+            # Login to the external IDP
+            (oath_cookie, keycloak_cookie3, keycloak_cookie4, response) = req.login_external_idp(logger, s,
+                                                                                                 header, idp_ip, idp_port,
+                                                                                                 idp_scheme, idp_path,
+                                                                                                 idp_username, idp_password,
+                                                                                                 idp2_ip, idp2_port, idp_broker)
 
-        response = req.access_sp_ws_fed(logger, s, header, sp_ip, sp_port, sp_scheme, sp_path)
+            assert response.status_code == HTTPStatus.OK
 
-        # store the cookie received from keycloak
-        keycloak_cookie5 = response.cookies
+            # Assert we are logged in
+            assert re.search(idp_message, response.text) is not None
 
-        assert response.status_code == HTTPStatus.FOUND
+            response = req.access_sp_ws_fed(logger, s, header, sp_ip, sp_port, sp_scheme, sp_path)
 
-        redirect_url = response.headers['Location']
+            # store the cookie received from keycloak
+            keycloak_cookie5 = response.cookies
 
-        header_redirect_idp = {
-            **header,
-            'Host': "{ip}:{port}".format(ip=idp_ip, port=idp_port),
-            'Referer': "{ip}:{port}".format(ip=sp_ip, port=sp_port)
-        }
+            assert response.status_code == HTTPStatus.FOUND
 
-        response = req.redirect_to_idp(logger, s, redirect_url, header_redirect_idp,
-                                       {**keycloak_cookie5, **keycloak_cookie3})
+            redirect_url = response.headers['Location']
 
-        assert response.status_code == HTTPStatus.OK
+            header_redirect_idp = {
+                **header,
+                'Host': "{ip}:{port}".format(ip=idp_ip, port=idp_port),
+                'Referer': "{ip}:{port}".format(ip=sp_ip, port=sp_port)
+            }
 
-        soup = BeautifulSoup(response.content, 'html.parser')
-        form = soup.body.form
+            response = req.redirect_to_idp(logger, s, redirect_url, header_redirect_idp,
+                                           {**keycloak_cookie5, **keycloak_cookie3})
 
-        url_form = form.get('action')
-        inputs = form.find_all('input')
-        method_form = form.get('method')
+            assert response.status_code == HTTPStatus.OK
 
-        # Get the token (SAML response) from the broker identity provider
-        token = {}
-        for input in inputs:
-            token[input.get('name')] = input.get('value')
+            soup = BeautifulSoup(response.content, 'html.parser')
+            form = soup.body.form
 
-        (response, sp_cookie) = req.access_sp_with_token(logger, s, header, sp_ip, sp_port, sp_scheme, idp_scheme,
-                                                         idp_ip, idp_port, method_form, url_form, token, keycloak_cookie5,
-                                                         keycloak_cookie5)
+            url_form = form.get('action')
+            inputs = form.find_all('input')
+            method_form = form.get('method')
 
-        assert response.status_code == HTTPStatus.OK
+            # Get the token (SAML response) from the broker identity provider
+            token = {}
+            for input in inputs:
+                token[input.get('name')] = input.get('value')
 
-        # assert that we are logged in
-        assert re.search(sp_message, response.text) is not None
+            (response, sp_cookie) = req.access_sp_with_token(logger, s, header, sp_ip, sp_port, sp_scheme, idp_scheme,
+                                                             idp_ip, idp_port, method_form, url_form, token, keycloak_cookie5,
+                                                             keycloak_cookie5)
 
-        # User can access SP1
+            assert response.status_code == HTTPStatus.OK
 
-        # Attempt to access SP2
+            # assert that we are logged in
+            assert re.search(sp_message, response.text) is not None
 
-        response = req.access_sp_ws_fed(logger, s, header, sp2_ip, sp2_port, sp2_scheme, sp2_path)
+            # User can access SP1
 
-        session_cookie = response.cookies
+            # Attempt to access SP2
 
-        redirect_url = response.headers['Location']
+            response = req.access_sp_ws_fed(logger, s, header, sp2_ip, sp2_port, sp2_scheme, sp2_path)
 
-        header_redirect_idp = {
-            **header,
-            'Host': "{ip}:{port}".format(ip=idp_ip, port=idp_port),
-            'Referer': "{ip}:{port}".format(ip=sp2_ip, port=sp2_port)
-        }
+            session_cookie = response.cookies
 
-        response = req.redirect_to_idp(logger, s, redirect_url, header_redirect_idp, {**keycloak_cookie3})
+            redirect_url = response.headers['Location']
 
-        # Assert that the client is not authorized to access SP2
-        assert response.status_code == HTTPStatus.FORBIDDEN
+            header_redirect_idp = {
+                **header,
+                'Host': "{ip}:{port}".format(ip=idp_ip, port=idp_port),
+                'Referer': "{ip}:{port}".format(ip=sp2_ip, port=sp2_port)
+            }
 
-        assert re.search(sp2_message, response.text) is not None
+            response = req.redirect_to_idp(logger, s, redirect_url, header_redirect_idp, {**keycloak_cookie3})
+
+            # Assert that the client is not authorized to access SP2
+            assert response.status_code == HTTPStatus.FORBIDDEN
+
+            assert re.search(sp2_message, response.text) is not None

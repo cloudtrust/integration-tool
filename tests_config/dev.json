@@ -111,7 +111,7 @@
       "client_id": "admin-cli"
     },
     "test_realm":{
-      "name": "keycloak_testing",
+      "name": "automatic_keycloak_testing",
       "username": "test_keycloak",
       "password": "toor1234*",
       "json_file": "tests_config/test_realm.json",
@@ -134,7 +134,7 @@
       "client_id": "admin-cli"
     },
     "test_realm":{
-      "name": "keycloak_testing_external",
+      "name": "automatic_keycloak_testing_external",
       "username": "test_keycloak_external",
       "password": "admin",
       "json_file": "tests_config/test_realm_external.json",
