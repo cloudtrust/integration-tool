@@ -129,9 +129,9 @@
     }
   },
   "idp_external":{
-    "ip" : "dev-idp.cloudtrust.io",
-    "port" : "443",
-    "http_scheme" : "https",
+    "ip" : "127.0.0.1",
+    "port" : "8081",
+    "http_scheme" : "http",
     "login_form_id": "kc-form-login",
     "logged_in_message": "Keycloak Account Management",
     "not_authorized_message": "not_authorized",

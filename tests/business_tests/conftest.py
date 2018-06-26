@@ -178,8 +178,10 @@ def login_broker_sso_form(settings, pytestconfig):
     # Standard
     if standard == "WSFED":
         client = "sps_wsfed"
+        idp_broker = settings["idp"]["saml_broker"]
     elif standard == "SAML":
         client = "sps_saml"
+        idp_broker = settings["idp"]["wsfed_broker"]
 
     # Service provider settings
     sp = settings[client][0]
@@ -227,7 +229,12 @@ def login_broker_sso_form(settings, pytestconfig):
 
     div = soup.find("div", {"id": "kc-social-providers"})
 
-    external_idp_url = "{scheme}://{ip}:{port}".format(scheme=idp_scheme, ip=idp_ip, port=idp_port) + div.li.a['href']
+    # we can have several idp external; choose the one needed for the test
+    all_li = div.find_all('li')
+    for li in all_li:
+        if li.span.text == idp_broker:
+            external_idp_url = "{scheme}://{ip}:{port}".format(scheme=idp_scheme, ip=idp_ip, port=idp_port) + li.a[
+                'href']
 
     # Select to login with the external IDP
     req_choose_external_idp = Request(
@@ -264,12 +271,20 @@ def login_broker_sso_form(settings, pytestconfig):
     }
 
     # Redirect to external IDP
-    req_redirect_external_idp = Request(
-        method=method_form,
-        url="{url}".format(url=url_form),
-        params=params,
-        headers=header_redirect_external_idp
-    )
+    if idp_broker == "cloudtrust_saml":
+        req_redirect_external_idp = Request(
+            method=method_form,
+            url="{url}".format(url=url_form),
+            data=params,
+            headers=header_redirect_external_idp
+        )
+    else:
+        req_redirect_external_idp = Request(
+            method=method_form,
+            url="{url}".format(url=url_form),
+            params=params,
+            headers=header_redirect_external_idp
+        )
 
     referer_url = url_form
 
@@ -281,7 +296,13 @@ def login_broker_sso_form(settings, pytestconfig):
 
     logger.debug(response.status_code)
 
-    keycloak_cookie2 = response.cookies
+    # if we have an identity provider saml, we do an extra redirect
+    if idp_broker == "cloudtrust_saml":
+        redirect_url = response.headers['Location']
+        keycloak_cookie2 = response.cookies
+        response = req.redirect_to_idp(logger, s, redirect_url, header, keycloak_cookie2)
+    else:
+        keycloak_cookie2 = response.cookies
 
     soup = BeautifulSoup(response.content, 'html.parser')
 
