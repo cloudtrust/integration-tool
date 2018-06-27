@@ -29,7 +29,7 @@ git clone git@github.com:cloudtrust/acceptance-tool.git
 python3 -m venv acceptance-tool
 cd acceptance-tool
 source bin/activate
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 ```
 
 In order to run the tests, there are two realms prepared (one for the broker and one for the external IDP) that contain all the clients, users, roles, attributes needed for the tests.
