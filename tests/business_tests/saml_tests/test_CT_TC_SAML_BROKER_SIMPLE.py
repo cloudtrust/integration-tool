@@ -250,7 +250,7 @@ class Test_CT_TC_SAML_SSO_BROKER_SIMPLE():
                 method=method_form,
                 url="{url}".format(url=url_form),
                 data=token,
-                cookies= keycloak_cookie,
+                cookies=keycloak_cookie,
                 headers=header
             )
 

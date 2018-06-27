@@ -636,7 +636,6 @@ def login_external_idp(logger, s, header, idp_ip, idp_port, idp_scheme, idp_path
     return (oath_cookie, keycloak_cookie3, keycloak_cookie4, response)
 
 
-
 def get_access_token(logger, s, data, idp_scheme, idp_port, idp_ip, realm_id):
     """
     Helper dedicated to obtain the access token for Keycloak
