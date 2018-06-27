@@ -43,7 +43,7 @@ representation found in these JSON files.
 In order to launch the SAML tests, please execute the following command:
 
 ```
-python3 -m pytest tests/business_tests/saml_tests/ -vs --config-file test_config/dev.json --standard SAML 
+python3 -m pytest tests/business_tests/saml_tests/ -vs --config-file tests_config/dev.json --standard SAML 
 
 ```
 
@@ -54,7 +54,7 @@ the test and we need to say what connection protocol is used.
 In order to launch the WSFED tests, please execute the foolowing command:
 
 ```
-python3 -m pytest tests/business_tests/wsfed_tests/ -vs --config-file test_config/dev.json --standard WSFED
+python3 -m pytest tests/business_tests/wsfed_tests/ -vs --config-file tests_config/dev.json --standard WSFED
 ```
 
 Parameters used are the same as for the SAML tests. 
