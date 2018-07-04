@@ -18,6 +18,7 @@ from helpers.logging import log_request
 
 from bs4 import BeautifulSoup
 from requests import Request
+from http import HTTPStatus
 
 
 def access_sp_ws_fed(logger, s, header, sp_ip, sp_port, sp_scheme, sp_path):
@@ -416,7 +417,7 @@ def login_idp(logger, s, header, idp_ip, idp_port, idp_scheme, idp_path, idp_use
     return oath_cookie, keycloak_cookie, keycloak_cookie2, response
 
 
-def login_external_idp(logger, s, header, idp_ip, idp_port, idp_scheme, idp_path, idp_username, idp_password, idp2_ip, idp2_port, idp_broker):
+def login_external_idp(logger, s, header, idp_ip, idp_port, idp_scheme, idp_path, idp_username, idp_password, idp2_ip, idp2_port, idp_broker, idp_form_id):
 
     # Request access to the broker IDP
     header_idp_page = {
@@ -508,7 +509,6 @@ def login_external_idp(logger, s, header, idp_ip, idp_port, idp_scheme, idp_path
         'Referer': "{ip}:{port}".format(ip=idp_ip, port=idp_port)
     }
 
-
     # Redirect to external IDP
     if idp_broker == "cloudtrust_saml":
         req_redirect_external_idp = Request(
@@ -594,25 +594,9 @@ def login_external_idp(logger, s, header, idp_ip, idp_port, idp_scheme, idp_path
 
     response = s.send(prepared_request, verify=False, allow_redirects=False)
 
+    logger.debug(response.status_code)
+
     keycloak_cookie3 = response.cookies
-
-    logger.debug(response.status_code)
-
-    url_redirect = response.headers['Location']
-
-    req_idp_redirect = Request(
-        method='GET',
-        url="{url}".format(url=url_redirect),
-        headers=header_idp_page
-    )
-
-    prepared_request = req_idp_redirect.prepare()
-
-    log_request(logger, req_idp_redirect)
-
-    response = s.send(prepared_request, verify=False, allow_redirects=False)
-
-    logger.debug(response.status_code)
 
     url_redirect = response.headers['Location']
 
@@ -631,9 +615,85 @@ def login_external_idp(logger, s, header, idp_ip, idp_port, idp_scheme, idp_path
 
     logger.debug(response.status_code)
 
-    keycloak_cookie4 = response.cookies
+    if response.status_code == HTTPStatus.OK:
 
-    return (oath_cookie, keycloak_cookie3, keycloak_cookie4, response)
+        response = broker_fill_in_form(logger, s, response, header, keycloak_cookie, response.cookies, idp_broker, idp_form_id)
+
+    else:
+
+        url_redirect = response.headers['Location']
+
+        req_idp_redirect = Request(
+            method='GET',
+            url="{url}".format(url=url_redirect),
+            headers=header_idp_page,
+            cookies={**keycloak_cookie, **keycloak_cookie3}
+        )
+
+        prepared_request = req_idp_redirect.prepare()
+
+        log_request(logger, req_idp_redirect)
+
+        response = s.send(prepared_request, verify=False, allow_redirects=False)
+
+        logger.debug(response.status_code)
+
+    return (oath_cookie, response.cookies, response)
+
+
+def broker_fill_in_form(logger, s, response, header, cookie, new_cookie, idp_broker, idp_form_id):
+    """
+    Method that simulates the requests that need to be done when a user first logs in using a broker,
+    as he is asked to fill in a form with his email, first name and last name
+    :param logger:
+    :param s:
+    :param response:
+    :param header:
+    :param cookie:
+    :param idp_broker:
+    :return:
+    """
+    soup = BeautifulSoup(response.content, 'html.parser')
+
+    form = soup.find("form", {"id": idp_form_id})
+    url_form = form.get('action')
+    method_form = form.get('method')
+    inputs = form.find_all('input')
+
+    for input in inputs:
+        if input.get('name') == "username":
+            username = input.get('value')
+
+    user_data = {}
+    user_data["username"] = username
+    if idp_broker == "cloudtrust_saml":
+        user_data["email"] = "test_email_saml@test.com"
+        user_data["firstName"] = "Mr."
+        user_data["lastName"] = "Test"
+    else:
+        user_data["email"] = "test_email_wsfed@test.com"
+        user_data["firstName"] = "Mr."
+        user_data["lastName"] = "Test"
+
+    req_send_user_data = Request(
+        method=method_form,
+        url="{url}".format(url=url_form),
+        data=user_data,
+        cookies={**cookie, **new_cookie},
+        headers=header
+    )
+    prepared_request = req_send_user_data.prepare()
+
+    log_request(logger, req_send_user_data)
+
+    response = s.send(prepared_request, verify=False, allow_redirects=False)
+
+    logger.debug(response.status_code)
+
+    redirect_url = response.headers['Location']
+    response = redirect_to_idp(logger, s, redirect_url, header, {**cookie, **new_cookie})
+
+    return response
 
 
 def get_access_token(logger, s, data, idp_scheme, idp_port, idp_ip, realm_id):

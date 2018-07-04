@@ -100,6 +100,7 @@
     "port" : "8080",
     "http_scheme" : "http",
     "login_form_id": "kc-form-login",
+    "login_form_update": "kc-update-profile-form",
     "logged_in_message": "Keycloak Account Management",
     "not_authorized_message": "not_authorized",
     "saml_broker": "cloudtrust_saml",

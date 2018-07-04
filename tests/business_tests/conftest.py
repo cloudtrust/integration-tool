@@ -20,6 +20,8 @@ from helpers.logging import log_request
 
 from bs4 import BeautifulSoup
 from requests import Request, Session
+from http import HTTPStatus
+
 
 logging.basicConfig(
     format='%(asctime)s %(name)s %(levelname)s %(message)s',
@@ -354,6 +356,9 @@ def login_broker_sso_form(settings, pytestconfig):
 
     logger.debug(response.status_code)
 
+    if response.status_code == HTTPStatus.FOUND: # user logs in for the first time and has to fill in a form
+        response = req.broker_fill_in_form(logger, s, response, header, keycloak_cookie, idp_broker, settings)
+
     # Get the token (SAML response) from the broker IDP
     soup = BeautifulSoup(response.content, 'html.parser')
     form = soup.body.form
@@ -371,7 +376,8 @@ def login_broker_sso_form(settings, pytestconfig):
                                                      idp_ip, idp_port, method_form, url_form, token, session_cookie,
                                                      keycloak_cookie)
 
-    return sp_cookie, keycloak_cookie3
+    return sp_cookie, keycloak_cookie3, response.status_code
+
 
 @pytest.fixture(scope='session')
 def export_realm(settings):
