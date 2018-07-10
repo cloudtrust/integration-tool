@@ -615,6 +615,7 @@ def login_external_idp(logger, s, header, idp_ip, idp_port, idp_scheme, idp_path
 
     logger.debug(response.status_code)
 
+    #the first login on the broker asks for filling in a form
     if response.status_code == HTTPStatus.OK:
 
         response = broker_fill_in_form(logger, s, response, header, keycloak_cookie, response.cookies, idp_broker, idp_form_id)

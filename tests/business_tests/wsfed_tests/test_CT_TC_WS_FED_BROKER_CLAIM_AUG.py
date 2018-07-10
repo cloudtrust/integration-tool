@@ -37,17 +37,17 @@ logging.basicConfig(
     format='%(asctime)s %(name)s %(levelname)s %(message)s',
     datefmt='%m/%d/%Y %I:%M:%S %p'
 )
-logger = logging.getLogger('acceptance-tool.tests.business_tests.test_CT_TC_WS_FED_BROKER_SIMPLE')
+logger = logging.getLogger('acceptance-tool.tests.business_tests.test_CT_TC_WS_FED_BROKER_CLAIM_AUG')
 logger.setLevel(logging.DEBUG)
 
 
 @pytest.mark.usefixtures('settings', 'import_realm', 'import_realm_external')
-class Test_CT_TC_WS_FED_BROKER_SIMPLE():
+class Test_CT_TC_WS_FED_BROKER_CLAIM_AUG():
     """
     Class to test the CT_TC_SAML_SSO_BROKER_SIMPLE use case:
-    As a user of company B I need the solution to allow me to access applications of company A
-    after an authentication on company B IDP.
-    Company A applications are protected by Cloudtrust which acts as a broker.
+    As a user of company B authenticating on company B IDP and accessing company A applications,
+    I need the solution to be able to add additional information to my access token.
+    For example, the network location at the time of authentication.
     """
 
     def test_CT_TC_WS_FED_BROKER_SIMPLE_SP_initiated(self, settings):
@@ -55,7 +55,7 @@ class Test_CT_TC_WS_FED_BROKER_SIMPLE():
         Test the CT_TC_WS_FED_BROKER_SIMPLE use case with the SP-initiated flow, i.e. the user accesses the application
         , which is a service provider (SP), that redirects him to the keycloak, the identity provider (IDP).
         The user has to login to keycloak which will give him the SAML token. The token will give him access to the
-        application.
+        application. The token contains builtin and external claims.
         :param settings:
         :return:
         """
@@ -305,7 +305,8 @@ class Test_CT_TC_WS_FED_BROKER_SIMPLE():
         """
         Test the CT_TC_WS_FED_BROKER_SIMPLE use case with the IDP-initiated flow, i.e. the user logs in keycloak,
         the identity provider (IDP), and then accesses the application, which is a service provider (SP).
-        The application redirect towards keycloak to obtain the SAML token.
+        The application redirect towards keycloak to obtain the SAML token. The token will give him access to the
+        application. The token contains builtin and external claims.
         :param settings:
         :return:
         """
