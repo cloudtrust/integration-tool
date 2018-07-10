@@ -108,6 +108,7 @@
     "port" : "443",
     "http_scheme" : "https",
     "login_form_id": "kc-form-login",
+    "login_form_update": "kc-update-profile-form",
     "logged_in_message": "Keycloak Account Management",
     "not_authorized_message": "not_authorized",
     "saml_broker": "cloudtrust_saml",
@@ -129,9 +130,9 @@
     }
   },
   "idp_external":{
-    "ip" : "127.0.0.1",
-    "port" : "8081",
-    "http_scheme" : "http",
+    "ip" : "dev-idp.cloudtrust.io",
+    "port" : "443",
+    "http_scheme" : "https",
     "login_form_id": "kc-form-login",
     "logged_in_message": "Keycloak Account Management",
     "not_authorized_message": "not_authorized",

@@ -87,6 +87,7 @@ class Test_test_CT_TC_SAML_BROKER_ACCESS_CONTROL_ABAC_OK():
         idp_username = settings["idp_external"]["test_realm"]["username"]
         idp_password = settings["idp_external"]["test_realm"]["password"]
         idp_broker = settings["idp"]["saml_broker"]
+        idp_form_id = settings["idp"]["login_form_update"]
 
         idp2_ip = settings["idp_external"]["ip"]
         idp2_port = settings["idp_external"]["port"]
@@ -266,6 +267,13 @@ class Test_test_CT_TC_SAML_BROKER_ACCESS_CONTROL_ABAC_OK():
 
             response = s.send(prepared_request, verify=False, allow_redirects=False)
 
+            if response.status_code == HTTPStatus.FOUND:
+                new_cookie = response.cookies
+                redirect_url = response.headers['Location']
+                response = req.redirect_to_idp(logger, s, redirect_url, header, {**keycloak_cookie, **new_cookie})
+                response = req.broker_fill_in_form(logger, s, response, header, keycloak_cookie, new_cookie, idp_broker,
+                                                   idp_form_id)
+
             keycloak_cookie3 = response.cookies
 
             logger.debug(response.status_code)
@@ -368,6 +376,7 @@ class Test_test_CT_TC_SAML_BROKER_ACCESS_CONTROL_ABAC_OK():
         idp_test_realm = settings["idp"]["test_realm"]["name"]
         idp_path = "auth/realms/{realm}/account".format(realm=idp_test_realm)
         idp_message = settings["idp"]["logged_in_message"]
+        idp_form_id = settings["idp"]["login_form_update"]
 
         idp_username = settings["idp_external"]["test_realm"]["username"]
         idp_password = settings["idp_external"]["test_realm"]["password"]
@@ -391,11 +400,12 @@ class Test_test_CT_TC_SAML_BROKER_ACCESS_CONTROL_ABAC_OK():
         for idp_broker in idp_brokers:
 
             # Login to the external IDP
-            (oath_cookie, keycloak_cookie3, keycloak_cookie4, response) = req.login_external_idp(logger, s,
-                                                                                                 header, idp_ip, idp_port,
-                                                                                                 idp_scheme, idp_path,
-                                                                                                 idp_username, idp_password,
-                                                                                                 idp2_ip, idp2_port, idp_broker)
+            (oath_cookie, keycloak_cookie3, response) = req.login_external_idp(logger, s,
+                                                                               header, idp_ip, idp_port,
+                                                                               idp_scheme, idp_path,
+                                                                               idp_username, idp_password,
+                                                                               idp2_ip, idp2_port, idp_broker,
+                                                                               idp_form_id)
 
             assert response.status_code == HTTPStatus.OK
 

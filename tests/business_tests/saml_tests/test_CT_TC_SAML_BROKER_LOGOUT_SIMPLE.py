@@ -90,7 +90,7 @@ class Test_CT_TC_SAML_SSO_BROKER_LOGOUT_SIMPLE():
         # Common header for all the requests
         header = req.get_header()
 
-        sp_cookie, keycloak_cookie = login_broker_sso_form
+        #sp_cookie, keycloak_cookie = login_broker_sso_form
 
         # header_sp_reload_page = {
         #     **header,
