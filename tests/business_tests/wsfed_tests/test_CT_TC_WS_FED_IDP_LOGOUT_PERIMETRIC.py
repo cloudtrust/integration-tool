@@ -101,6 +101,10 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_PERIMETRIC():
 
         response = req.redirect_to_idp(logger, s, redirect_url, header_redirect_idp, {**keycloak_cookie})
 
+        if response.status_code == HTTPStatus.UNAUTHORIZED and response.headers['WWW-Authenticate'] == 'Negotiate':
+            response = req.kerberos_form_fallback(logger, s, response, header,
+                                                  {**keycloak_cookie, **session_cookie})
+
         soup = BeautifulSoup(response.content, 'html.parser')
         form = soup.body.form
 

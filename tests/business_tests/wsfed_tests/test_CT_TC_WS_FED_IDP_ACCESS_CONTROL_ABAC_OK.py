@@ -105,6 +105,10 @@ class Test_test_CT_TC_WS_FED_IDP_ACCESS_CONTROL_ABAC_OK():
 
         keycloak_cookie = response.cookies
 
+        if response.status_code == HTTPStatus.UNAUTHORIZED and response.headers['WWW-Authenticate'] == 'Negotiate':
+            response = req.kerberos_form_fallback(logger, s, response, header,
+                                                  {**keycloak_cookie, **session_cookie})
+
         soup = BeautifulSoup(response.content, 'html.parser')
 
         form = soup.find("form", {"id": keycloak_login_form_id})

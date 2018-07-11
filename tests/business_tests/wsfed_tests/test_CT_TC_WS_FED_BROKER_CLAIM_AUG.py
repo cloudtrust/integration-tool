@@ -116,6 +116,10 @@ class Test_CT_TC_WS_FED_BROKER_CLAIM_AUG():
 
             keycloak_cookie = response.cookies
 
+            if response.status_code == HTTPStatus.UNAUTHORIZED and response.headers['WWW-Authenticate'] == 'Negotiate':
+                response = req.kerberos_form_fallback(logger, s, response, header,
+                                                      {**keycloak_cookie, **session_cookie})
+
             # In the login page we can choose to login with the external IDP
             soup = BeautifulSoup(response.content, 'html.parser')
 
