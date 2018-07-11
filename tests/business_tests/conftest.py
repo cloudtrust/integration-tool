@@ -14,6 +14,7 @@
 import pytest
 import json
 import logging
+import re
 
 import helpers.requests as req
 from helpers.logging import log_request
@@ -113,6 +114,9 @@ def login_sso_form(settings, pytestconfig):
     response = req.redirect_to_idp(logger, s, redirect_url, header_redirect_idp, session_cookie)
 
     keycloak_cookie = response.cookies
+
+    if response.status_code == HTTPStatus.UNAUTHORIZED and response.headers['WWW-Authenticate'] == 'Negotiate':
+        response = req.kerberos_form_fallback(logger, s, response, header, {**keycloak_cookie, **session_cookie})
 
     soup = BeautifulSoup(response.content, 'html.parser')
 
@@ -225,6 +229,9 @@ def login_broker_sso_form(settings, pytestconfig):
     }
 
     response = req.redirect_to_idp(logger, s, redirect_url, header_redirect_idp, keycloak_cookie)
+
+    if response.status_code == HTTPStatus.UNAUTHORIZED and response.headers['WWW-Authenticate'] == 'Negotiate':
+        response = req.kerberos_form_fallback(logger, s, response, header, {**keycloak_cookie, **session_cookie})
 
     # In the login page we can choose to login with the external IDP
     soup = BeautifulSoup(response.content, 'html.parser')

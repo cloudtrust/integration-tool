@@ -344,7 +344,7 @@ def login_idp(logger, s, header, idp_ip, idp_port, idp_scheme, idp_path, idp_use
 
     keycloak_cookie = response.cookies
 
-    if response.status_code == HTTPStatus.UNAUTHORIZED and re.search("Kerberos Unsupported", response.text):
+    if response.status_code == HTTPStatus.UNAUTHORIZED and response.headers['WWW-Authenticate'] == 'Negotiate':
         response = kerberos_form_fallback(logger, s, response, header, {**keycloak_cookie})
 
     soup = BeautifulSoup(response.content, 'html.parser')
@@ -462,6 +462,9 @@ def login_external_idp(logger, s, header, idp_ip, idp_port, idp_scheme, idp_path
     logger.debug(response.status_code)
 
     keycloak_cookie = response.cookies
+
+    if response.status_code == HTTPStatus.UNAUTHORIZED and response.headers['WWW-Authenticate'] == 'Negotiate':
+        response = kerberos_form_fallback(logger, s, response, header, {**keycloak_cookie})
 
     # In the login page we can choose to login with the external IDP
     soup = BeautifulSoup(response.content, 'html.parser')
