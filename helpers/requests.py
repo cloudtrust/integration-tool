@@ -13,6 +13,7 @@
 #
 
 import json
+import re
 
 from helpers.logging import log_request
 
@@ -342,6 +343,9 @@ def login_idp(logger, s, header, idp_ip, idp_port, idp_scheme, idp_path, idp_use
     logger.debug(response.status_code)
 
     keycloak_cookie = response.cookies
+
+    if response.status_code == HTTPStatus.UNAUTHORIZED and re.search("Kerberos Unsupported", response.text):
+        response = kerberos_form_fallback(logger, s, response, header, {**keycloak_cookie})
 
     soup = BeautifulSoup(response.content, 'html.parser')
 
@@ -744,4 +748,34 @@ def get_header():
         'Upgrade-Insecure-Requests': "1",
     }
     return header
+
+def kerberos_form_fallback(logger, s, response, header, cookie):
+
+    soup = BeautifulSoup(response.content, 'html.parser')
+
+    form = soup.find("form")
+
+    url_form = form.get('action')
+    method_form = form.get('method')
+
+    inputs = form.find_all('input')
+
+    req_kerberos_fallback = Request(
+        method=method_form,
+        url="{url}".format(url=url_form),
+        headers=header,
+        cookies=cookie
+    )
+
+    prepared_request = req_kerberos_fallback.prepare()
+
+    log_request(logger, req_kerberos_fallback)
+
+    response = s.send(prepared_request, verify=False, allow_redirects=False)
+
+    logger.debug(response.status_code)
+
+    return response
+
+
 

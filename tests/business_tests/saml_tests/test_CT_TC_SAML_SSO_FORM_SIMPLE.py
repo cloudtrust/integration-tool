@@ -103,6 +103,9 @@ class Test_CT_TC_SAML_SSO_FORM_SIMPLE():
 
             response = req.redirect_to_idp(logger, s, redirect_url, header_redirect_idp, keycloak_cookie)
 
+            if response.status_code == HTTPStatus.UNAUTHORIZED and re.search("Kerberos Unsupported", response.text):
+                response = req.kerberos_form_fallback(logger, s, response, header, {**keycloak_cookie})
+
             soup = BeautifulSoup(response.content, 'html.parser')
 
             form = soup.find("form", {"id": keycloak_login_form_id})
@@ -292,6 +295,9 @@ class Test_CT_TC_SAML_SSO_FORM_SIMPLE():
             logger.debug(response.status_code)
 
             keycloak_cookie = response.cookies
+
+            if response.status_code == HTTPStatus.UNAUTHORIZED and re.search("Kerberos Unsupported", response.text):
+                response = req.kerberos_form_fallback(logger, s, response, header, {**keycloak_cookie})
 
             soup = BeautifulSoup(response.content, 'html.parser')
 
