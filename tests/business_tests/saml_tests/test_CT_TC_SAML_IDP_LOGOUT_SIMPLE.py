@@ -199,5 +199,3 @@ class Test_test_CT_TC_SAML_IDP_LOGOUT_SIMPLE():
 
         # Assert the logout page is displayed
         assert re.search(sp_message, response.text) is not None
-
-        print(response.text)
