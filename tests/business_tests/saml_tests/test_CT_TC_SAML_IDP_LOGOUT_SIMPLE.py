@@ -131,7 +131,8 @@ class Test_test_CT_TC_SAML_IDP_LOGOUT_SIMPLE():
             method=method_form,
             url="{url}".format(url=url_form),
             data=saml_request,
-            headers=header_redirect_idp
+            headers=header_redirect_idp,
+            cookies={**keycloak_cookie}
         )
 
         prepared_request = req_idp_saml_request.prepare()
@@ -198,3 +199,5 @@ class Test_test_CT_TC_SAML_IDP_LOGOUT_SIMPLE():
 
         # Assert the logout page is displayed
         assert re.search(sp_message, response.text) is not None
+
+        print(response.text)
