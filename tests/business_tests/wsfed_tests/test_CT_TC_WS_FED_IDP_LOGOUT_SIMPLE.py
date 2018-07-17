@@ -63,7 +63,7 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_SIMPLE():
         s = Session()
 
         # Service provider settings
-        sps = [settings["sps_wsfed"][0], settings["sps_wsfed"][1]]
+        sps = [settings["sps_wsfed"][0]]
         for sp in sps:
             sp_ip = sp["ip"]
             sp_port = sp["port"]
@@ -130,7 +130,7 @@ class Test_test_CT_TC_WS_FED_IDP_LOGOUT_SIMPLE():
 
             redirect_url = response.headers['Location']
 
-            response = req.redirect_to_idp(logger, s, redirect_url, header, sp_cookie)
+            response = req.redirect_to_idp(logger, s, redirect_url, header, {**sp_cookie, **keycloak_cookie})
 
             assert response.status_code == HTTPStatus.OK
 
