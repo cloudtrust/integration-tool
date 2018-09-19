@@ -127,6 +127,7 @@ class Test_CT_TC_WS_FED_BROKER_SIMPLE():
                     external_idp_url = "{scheme}://{ip}:{port}".format(scheme=idp_scheme, ip=idp_ip, port=idp_port) + li.a[
                         'href']
 
+
             assert external_idp_url is not None
 
             # Select to login with the external IDP

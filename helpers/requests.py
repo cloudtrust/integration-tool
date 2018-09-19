@@ -661,6 +661,7 @@ def broker_fill_in_form(logger, s, response, header, cookie, new_cookie, idp_bro
     :param idp_broker:
     :return:
     """
+
     soup = BeautifulSoup(response.content, 'html.parser')
 
     form = soup.find("form", {"id": idp_form_id})
