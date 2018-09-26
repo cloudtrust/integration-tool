@@ -29,6 +29,7 @@ git clone git@github.com:cloudtrust/acceptance-tool.git
 python3 -m venv acceptance-tool
 cd acceptance-tool
 source bin/activate
+pip3 install --upgrade pip
 pip3 install -r requirements.txt
 ```
 
